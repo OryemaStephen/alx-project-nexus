@@ -37,7 +37,7 @@ const Dashboard: React.FC<ComponentProps> = ({ children }) => {
 
       <div className="flex-1 flex flex-col">
         <Header toggleSidebar={toggleSidebar} />
-        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto">
+        <main className="flex-1 p-4 overflow-y-auto">
           {children}
         </main>
       </div>

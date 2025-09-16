@@ -27,3 +27,7 @@ export interface SidebarProps {
 export type ContentProps = {
   active: string;
 };
+
+export interface BrowserTitleProps {
+  title: string;
+}

@@ -16,12 +16,12 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
       .split("/")
       .filter((segment) => segment);
     if (pathSegments.length === 1 && pathSegments[0] === "dashboard") {
-      return "Dashboard";
+      return "Home";
     } else if (pathSegments.length > 1) {
       const lastSegment = pathSegments[pathSegments.length - 1];
       return lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1);
     }
-    return "Dashboard";
+    return "Home";
   };
 
   useEffect(() => {

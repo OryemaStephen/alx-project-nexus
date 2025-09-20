@@ -11,6 +11,41 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   const router = useRouter();
 
+  useEffect(() => {
+    const getTitle = () => {
+      const pathSegments = router.pathname
+        .split("/")
+        .filter((segment) => segment);
+      
+      if (pathSegments.length === 1 && pathSegments[0] === "dashboard") {
+        return "Home";
+      }
+      
+      if (router.query.id) {
+        if (pathSegments[1] === "posts") {
+          return "Post Details";
+        }
+        if (pathSegments[1] === "profile") {
+          return "Profile";
+        }
+      }
+      
+      if (pathSegments.length > 1) {
+        const lastSegment = pathSegments[pathSegments.length - 1];
+        return lastSegment
+          .replace(/[-_]/g, ' ')
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+      }
+      
+      return "Home";
+    };
+
+    const pageTitle = getTitle();
+    document.title = `${pageTitle} - MySocial`;
+  }, [router.pathname, router.query]); // Now only depends on router properties
+
   const getTitle = () => {
     const pathSegments = router.pathname
       .split("/")
@@ -40,11 +75,6 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
     
     return "Home";
   };
-
-  useEffect(() => {
-    const pageTitle = getTitle();
-    document.title = `${pageTitle} - MySocial`;
-  }, [router.pathname, router.query, ]);
 
   const title = getTitle();
 

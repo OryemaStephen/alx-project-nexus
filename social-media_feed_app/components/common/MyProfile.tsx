@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import Image from "next/image";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { Loader2, Edit, Save, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { MeQueryData, UserProfile } from "@/interfaces";
 import { ME_QUERY } from "@/graphql/requests/get/getMyProfile";
@@ -32,18 +31,20 @@ const MyProfile: React.FC = () => {
         Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
       },
     },
-    errorPolicy: 'all',
-    onSuccess: (data: MeQueryData) => {
-      if (data?.me) {
-        setEditForm({
-          fullname: data.me.fullname || "",
-          username: data.me.username || "",
-          email: data.me.email || "",
-          bio: data.me.bio || "",
-        });
-      }
-    },
+    errorPolicy: "all",
   });
+
+  // Use useEffect to handle the data when it's loaded
+  useEffect(() => {
+    if (data?.me) {
+      setEditForm({
+        fullname: data.me.fullname || "",
+        username: data.me.username || "",
+        email: data.me.email || "",
+        bio: data.me.bio || "",
+      });
+    }
+  }, [data]); // This will run when data changes
 
   const [updateProfile, { loading: updating }] = useMutation(UPDATE_PROFILE_MUTATION, {
     context: {
@@ -219,7 +220,7 @@ const MyProfile: React.FC = () => {
             <button
               onClick={handleSave}
               disabled={updating}
-              className="bg-[#8fd0f1] hover:bg-[#8fd0f1] py-2 px-4 rounded-md flex items-center"
+              className="bg-[#8fd0f1] hover:bg-[#7ac0e1] text-black px-4 py-2 rounded-lg transition flex items-center gap-2"
             >
               {updating ? (
                 <Loader2 className="animate-spin" size={18} />

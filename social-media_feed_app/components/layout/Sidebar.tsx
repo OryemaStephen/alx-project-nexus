@@ -36,7 +36,7 @@ const Sidebar: React.FC<SidebarProps> = ({ menuItems, active, onSelect }) => {
               href={path}
               onClick={() => onSelect(id)}
               className={`cursor-pointer px-4 py-2 rounded-lg flex items-center gap-2 transition ${
-                active === id ? "bg-[#A9DEF9] text-black" : "hover:bg-[#8fd0f1] text-black"
+                active === id ? "bg-[#A9DEF9] text-red-500" : "hover:bg-[#8fd0f1] text-red-400"
               }`}
             >
               <Icon size={18} />

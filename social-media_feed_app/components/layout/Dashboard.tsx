@@ -19,11 +19,11 @@ const Dashboard: React.FC<ComponentProps> = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen flex text-black bg-gray-100">
+    <div className="min-h-screen bg-gray-100">
       <div
         className={`fixed inset-y-0 left-0 transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 md:static md:w-64 transition-transform duration-200 ease-in-out z-50`}
+        } md:translate-x-0 md:w-64 transition-transform duration-200 ease-in-out z-50`}
       >
         <Sidebar
           menuItems={menuItems}
@@ -34,13 +34,13 @@ const Dashboard: React.FC<ComponentProps> = ({ children }) => {
           }}
         />
       </div>
-
-      <div className="flex-1 flex flex-col">
+      <div className="fixed top-0 left-0 right-0 md:left-64 z-40">
         <Header toggleSidebar={toggleSidebar} />
-        <main className="flex-1 p-4 overflow-y-auto">
-          {children}
-        </main>
       </div>
+
+      <main className="pt-20 md:ml-64 p-4 overflow-y-auto h-screen">
+        {children}
+      </main>
 
       {isSidebarOpen && (
         <div

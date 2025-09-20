@@ -1,24 +1,75 @@
 import Button from "@/components/common/Button";
 import Logo from "@/components/common/Logo";
 import BrowserTitle from "@/components/layout/BrowserTitle";
+import { CREATE_USER } from "@/graphql/requests/posts/createUser";
+import { RegisterFormProps } from "@/interfaces";
+import { useMutation } from "@apollo/client/react";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
 const Register: React.FC = () => {
-  const [name, setName] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [password1, setPassword1] = useState<string>("");
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [confirmPassword, setConfirmPassword] = useState<boolean>(false);
+  const [formData, setFormData] = useState<RegisterFormProps>({
+    username: "",
+    email: "",
+    password: "",
+    password1: "",
+    showPassword: false,
+    confirmPassword: false,
+  });
   const router = useRouter();
+
+  const [createUser, { loading }] = useMutation(CREATE_USER, {
+    onCompleted: (data) => {
+      console.log("User created:", data);
+      toast.success("Registration successful 🚀");
+      router.push("/auth/login");
+    },
+    onError: (error) => {
+      toast.error(error.message || "An error occurred during registration");
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    toast.success("Registration  successful 🚀");
-    router.push("/auth/login");
+
+    if (formData.password !== formData.password1) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    const usernameRegex = /^[A-Za-z0-9@.+-_]{1,150}$/;
+    if (!usernameRegex.test(formData.username)) {
+      toast.error(
+        "Username must be 150 characters or fewer and contain only letters, digits, @, ., +, -, or _"
+      );
+      return;
+    }
+
+    try {
+      await createUser({
+        variables: {
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+        },
+      });
+    } catch (error) {
+      console.error("Error during registration:", error);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name as keyof RegisterFormProps]: e.target.value,
+    });
+  };
+
+  const togglePasswordVisibility = (
+    field: "showPassword" | "confirmPassword"
+  ) => {
+    setFormData({ ...formData, [field]: !formData[field] });
   };
 
   return (
@@ -35,33 +86,40 @@ const Register: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="text"
-              placeholder="Full Name"
+              name="username"
+              placeholder="UserName"
               className="w-full border rounded-lg px-3 py-2 focus:ring-0 focus:outline-none"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={formData.username}
+              onChange={handleChange}
+              required
+              maxLength={150}
+              pattern="[A-Za-z0-9@.+-_]+"
             />
             <input
               type="email"
+              name="email"
               placeholder="Email"
               className="w-full border rounded-lg px-3 py-2 focus:ring-0 focus:outline-none"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={formData.email}
+              onChange={handleChange}
+              required
             />
-
             <div className="relative">
               <input
-                type={showPassword ? "text" : "password"}
+                type={formData.showPassword ? "text" : "password"}
+                name="password"
                 placeholder="Password"
                 className="w-full border rounded-lg px-3 py-2 focus:ring-0 focus:outline-none"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={handleChange}
+                required
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => togglePasswordVisibility("showPassword")}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
-                {showPassword ? (
+                {formData.showPassword ? (
                   <Eye className="w-5 h-5" />
                 ) : (
                   <EyeOff className="w-5 h-5" />
@@ -70,18 +128,20 @@ const Register: React.FC = () => {
             </div>
             <div className="relative">
               <input
-                type={confirmPassword ? "text" : "password"}
+                type={formData.confirmPassword ? "text" : "password"}
+                name="password1"
                 placeholder="Confirm Password"
                 className="w-full border rounded-lg px-3 py-2 focus:ring-0 focus:outline-none"
-                value={password1}
-                onChange={(e) => setPassword1(e.target.value)}
+                value={formData.password1}
+                onChange={handleChange}
+                required
               />
               <button
                 type="button"
-                onClick={() => setConfirmPassword(!confirmPassword)}
+                onClick={() => togglePasswordVisibility("confirmPassword")}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
-                {confirmPassword ? (
+                {formData.confirmPassword ? (
                   <Eye className="w-5 h-5" />
                 ) : (
                   <EyeOff className="w-5 h-5" />
@@ -89,7 +149,7 @@ const Register: React.FC = () => {
               </button>
             </div>
             <Button
-              title="Register"
+              title={loading ? "Registering..." : "Register"}
               type="submit"
               className="w-full py-2 rounded-lg hover:bg-[#9dcce3] transition"
             />

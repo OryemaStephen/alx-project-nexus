@@ -1,13 +1,20 @@
 import BrowserTitle from "@/components/layout/BrowserTitle";
 import Dashboard from "../../components/layout/Dashboard";
+import CreatePostForm from "@/components/common/CreatePostForm";
+import PostFeed from "@/components/common/PostFeed";
+import ProfileRecommendation from "@/components/common/ProfileRecommendation";
+import { mockRecommendations } from "@/constants";
 
 const Home: React.FC = () => {
   return (
     <Dashboard>
       <BrowserTitle title="Home" />
-      <div className="text-black">
-        <h1 className="text-2xl font-bold mb-4">Home</h1>
-        <p>Welcome to your dashboard!</p>
+      <div className="text-black flex">
+        <div className="flex-1 max-w-4xl">
+          <CreatePostForm />
+          <PostFeed />
+        </div>
+        <ProfileRecommendation users={mockRecommendations} />
       </div>
     </Dashboard>
   );

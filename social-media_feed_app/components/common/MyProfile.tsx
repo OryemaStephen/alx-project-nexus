@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import Image from "next/image";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { Loader2, Edit, Save, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "react-toastify";
 import { MeQueryData, UserProfile } from "@/interfaces";
 import { ME_QUERY } from "@/graphql/requests/get/getMyProfile";
@@ -32,17 +33,17 @@ const MyProfile: React.FC = () => {
       },
     },
     errorPolicy: 'all',
+    onSuccess: (data: MeQueryData) => {
+      if (data?.me) {
+        setEditForm({
+          fullname: data.me.fullname || "",
+          username: data.me.username || "",
+          email: data.me.email || "",
+          bio: data.me.bio || "",
+        });
+      }
+    },
   });
-  useEffect(() => {
-    if (data?.me) {
-      setEditForm({
-        fullname: data.me.fullname || "",
-        username: data.me.username || "",
-        email: data.me.email || "",
-        bio: data.me.bio || "",
-      });
-    }
-  }, [data]);
 
   const [updateProfile, { loading: updating }] = useMutation(UPDATE_PROFILE_MUTATION, {
     context: {
@@ -56,6 +57,7 @@ const MyProfile: React.FC = () => {
 
   const handleEditToggle = () => {
     if (isEditing) {
+      // Reset form when canceling edit
       setEditForm({
         fullname: userData.fullname || "",
         username: userData.username || "",
@@ -86,7 +88,7 @@ const MyProfile: React.FC = () => {
 
       toast.success("Profile updated successfully! 🎉");
       setIsEditing(false);
-      refetch();
+      refetch(); // Refetch to get updated data
     } catch (error: unknown) {
       const errorMessage = error instanceof Error
         ? error.message
@@ -112,10 +114,10 @@ const MyProfile: React.FC = () => {
   return (
     <div className="w-full p-6 bg-white text-black rounded-2xl shadow-lg">
       <div className="flex justify-between items-center mb-6">
-        <div />
+        <h1 className="text-2xl font-bold">My Profile</h1>
         <button
           onClick={handleEditToggle}
-          className="flex items-center gap-2 bg-[#8fd0f1] hover:bg-[#7ac0e1] text-white px-4 py-2 rounded-lg transition"
+          className="flex items-center gap-2 bg-[#8fd0f1] hover:bg-[#7ac0e1] text-black px-3 py-1 rounded-lg transition"
         >
           {isEditing ? (
             <>
@@ -217,7 +219,7 @@ const MyProfile: React.FC = () => {
             <button
               onClick={handleSave}
               disabled={updating}
-              className="flex items-center gap-2 bg-[#8fd0f1] hover:bg-[#7ac0e1] text-white px-4 py-2 rounded-lg transition"
+              className="bg-[#8fd0f1] hover:bg-[#8fd0f1] py-2 px-4 rounded-md flex items-center"
             >
               {updating ? (
                 <Loader2 className="animate-spin" size={18} />

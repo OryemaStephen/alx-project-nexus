@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Heart, MessageCircle, Share } from "lucide-react";
 import { PostCardProps } from "@/interfaces";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
   const [isLiked, setIsLiked] = useState(false);
@@ -64,7 +65,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
           {post.commentCount >1 ?"Comments":"Comment"}
         </button>
 
-        <button className="flex items-center gap-1 text-gray-500">
+        <button onClick={()=> toast.info("Shared content success")} className="flex items-center gap-1 text-gray-500">
           <Share size={20} />
           Share
         </button>

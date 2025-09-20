@@ -36,7 +36,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
             alt="Post image"
             width={400}
             height={300}
-            className="rounded-lg w-full h-auto"
+            className="rounded-lg w-full max-h-72"
             style={{ objectFit: "cover" }}
             priority
           />
@@ -52,7 +52,8 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
         >
           {likeCount}{" "}
           <Heart size={20} fill={isLiked ? "currentColor" : "none"} />
-          Like
+          
+          {likeCount >1 ?"Likes":"Like"}
         </button>
 
         <button
@@ -60,7 +61,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
           className="flex items-center gap-1 text-gray-500"
         >
           {post.commentCount} <MessageCircle size={20} />
-          Comment
+          {post.commentCount >1 ?"Comments":"Comment"}
         </button>
 
         <button className="flex items-center gap-1 text-gray-500">

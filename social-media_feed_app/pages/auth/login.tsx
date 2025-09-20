@@ -44,7 +44,7 @@ const Login: React.FC = () => {
     //   }
 
     //   localStorage.setItem('token', token);
-    //   toast.success('Login successful 🚀');
+      toast.success('Login successful 🚀');
     //   router.push('/dashboard');
     // } catch (error: unknown) {
     //   const errorMessage =

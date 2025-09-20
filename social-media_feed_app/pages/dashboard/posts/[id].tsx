@@ -4,6 +4,8 @@ import { Loader2, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import { Post } from "@/interfaces";
 import Dashboard from "@/components/layout/Dashboard";
+import Button from "@/components/common/Button";
+import { toast } from "react-toastify";
 
 const fetchPost = async (id: string): Promise<Post | null> => {
   const mockPosts: Post[] = [
@@ -131,25 +133,35 @@ const PostDetailPage: React.FC = () => {
       </div>
       
       <div className="bg-white rounded-2xl shadow-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">Comments</h2>
+        <h2 className="text-xl text-black font-semibold mb-4">Comments</h2>
         
         <div className="mb-4">
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="Add a comment..."
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A9DEF9] "
             rows={3}
           />
-          <button className="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-            Post Comment
-          </button>
+          <Button
+            title={loading ? "Posting..." : "Post Comment"}
+            type="button"
+            action={() => toast.success("Comment feature coming soon!")}
+            className="rounded-md hover:bg-[#9dcce3] transition"
+          />
         </div>
         
         <div className="space-y-4">
           <div className="border-b border-gray-200 pb-4">
             <div className="flex items-center mb-2">
-              <span className="font-semibold">commenter_name</span>
+              <span className="font-semibold text-black">jane_doe</span>
+              <span className="text-gray-500 text-sm ml-2">2 hours ago</span>
+            </div>
+            <p className="text-gray-700">This is a sample comment on the post.</p>
+          </div>
+          <div className="border-b border-gray-200 pb-4">
+            <div className="flex items-center mb-2">
+              <span className="font-semibold text-black">pitt_02</span>
               <span className="text-gray-500 text-sm ml-2">2 hours ago</span>
             </div>
             <p className="text-gray-700">This is a sample comment on the post.</p>

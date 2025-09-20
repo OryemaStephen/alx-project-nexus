@@ -1,16 +1,20 @@
 import MyProfile from "@/components/common/MyProfile";
+import ProfileRecommendation from "@/components/common/ProfileRecommendation";
 import BrowserTitle from "@/components/layout/BrowserTitle";
 import Dashboard from "@/components/layout/Dashboard";
+import { mockRecommendations } from "@/constants";
 
 const Profile: React.FC = () => {
   return (
     <Dashboard>
       <BrowserTitle title="Profile" />
-      {/* <div className="text-black">
-        <h1 className="text-2xl font-bold mb-4">Profile</h1>
-        <p>This is your profile page.</p>
-      </div> */}
-      <MyProfile />
+      
+      <div className="text-black flex">
+        <div className="flex-1 max-w-4xl">
+          <MyProfile />
+        </div>
+        <ProfileRecommendation users={mockRecommendations} />
+      </div>
     </Dashboard>
   );
 };

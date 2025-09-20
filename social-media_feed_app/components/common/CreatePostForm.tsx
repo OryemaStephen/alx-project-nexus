@@ -31,7 +31,6 @@ const CreatePostForm: React.FC = () => {
       const { data } = await createPost({
         variables: {
           content: formState.content,
-          imageUrl: formState.imageUrl || null,
         },
       });
 
@@ -56,33 +55,27 @@ const CreatePostForm: React.FC = () => {
   };
 
   return (
-    <>
-      <div className="w-full bg-white text-black rounded-2xl shadow-lg p-4">
-        <h1 className="font-bold  mb-4">Create a New Post</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="w-full bg-white text-black rounded-2xl p-4">
+      <h1 className="font-bold mb-4">Create a New Post</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="relative">
           <textarea
             name="content"
             placeholder="What's on your mind?"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-0 focus:ring-gray-200  focus:outline-none resize-y min-h-[40px]"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-0 focus:ring-gray-200 focus:outline-none min-h-[40px] resize-none"
             value={formState.content}
             onChange={handleInputChange}
+            rows={3}
+            style={{ minHeight: '40px', maxHeight: '200px' }}
           />
-          {/* <input
-            type="url"
-            name="imageUrl"
-            placeholder="Image URL (optional)"
-            className="w-full border rounded-lg px-3 py-2 focus:ring-0 focus:outline-none"
-            value={formState.imageUrl}
-            onChange={handleInputChange}
-          /> */}
-          <Button
-            title={loading ? "Creating..." : "Create Post"}
-            type="submit"
-            className="rounded-md hover:bg-[#9dcce3] transition"
-          />
-        </form>
-      </div>
-    </>
+        </div>
+        <Button
+          title={loading ? "Creating..." : "Create Post"}
+          type="submit"
+          className="rounded-md hover:bg-[#9dcce3] transition"
+        />
+      </form>
+    </div>
   );
 };
 

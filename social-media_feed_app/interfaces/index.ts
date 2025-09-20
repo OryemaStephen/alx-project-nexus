@@ -88,3 +88,16 @@ export interface ProfileRecommendationProps {
   users: RecommendedUser[];
 }
 
+export interface UserProfile {
+  id: string;
+  username: string;
+  fullname: string;
+  email: string;
+  bio?: string;
+  profilePicture?: string;
+}
+
+export interface MeQueryData {
+  me: UserProfile;
+}
+

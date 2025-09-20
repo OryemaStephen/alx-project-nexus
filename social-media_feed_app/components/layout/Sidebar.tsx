@@ -37,7 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({ menuItems, active, onSelect }) => {
               href={path}
               onClick={() => {
                 onSelect(id)
-                toast.info('Logged out successfully 👋');
+                toast.success('Logged out successfully 👋');
               }}
               className={`cursor-pointer px-4 py-2 rounded-lg flex items-center gap-2 transition ${
                 active === id ? "bg-[#A9DEF9] text-red-500" : "hover:bg-[#8fd0f1] text-red-400"

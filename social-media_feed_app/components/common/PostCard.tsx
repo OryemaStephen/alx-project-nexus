@@ -65,7 +65,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
           {post.commentCount >1 ?"Comments":"Comment"}
         </button>
 
-        <button onClick={()=> toast.info("Shared content success")} className="flex items-center gap-1 text-gray-500">
+        <button onClick={()=> toast.success("Shared content success")} className="flex items-center gap-1 text-gray-500">
           <Share size={20} />
           Share
         </button>

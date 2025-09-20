@@ -75,7 +75,7 @@ const Register: React.FC = () => {
   return (
     <>
       <BrowserTitle title="Sign Up" />
-      <div className="flex items-center justify-center min-h-screen p-4 bg-black">
+      <div className="flex items-center justify-center min-h-screen p-4 bg-gray-100">
         <div className="w-full max-w-md bg-white text-black rounded-2xl shadow-lg p-8">
           <div className="w-full pb-5 flex items-center justify-center">
             <Logo />

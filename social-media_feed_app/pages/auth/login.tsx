@@ -6,8 +6,8 @@ import Button from "@/components/common/Button";
 import Logo from "@/components/common/Logo";
 import BrowserTitle from "@/components/layout/BrowserTitle";
 import { LoginFormProps } from "@/interfaces";
-import { LOGIN_MUTATION } from "@/graphql/requests/posts/login";
-import { useMutation } from "@apollo/client/react";
+// import { LOGIN_MUTATION } from "@/graphql/requests/posts/login";
+// import { useMutation } from "@apollo/client/react";
 
 const Login: React.FC = () => {
   const router = useRouter();
@@ -17,7 +17,7 @@ const Login: React.FC = () => {
     showPassword: false,
   });
 
-  const [login, { loading }] = useMutation(LOGIN_MUTATION);
+  // const [login, { loading }] = useMutation(LOGIN_MUTATION);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -65,7 +65,7 @@ const Login: React.FC = () => {
   return (
     <>
       <BrowserTitle title="Login" />
-      <div className="flex items-center justify-center min-h-screen p-4 bg-black">
+      <div className="flex items-center justify-center bg-gray-100 min-h-screen p-4 bg-">
         <div className="w-full max-w-md bg-white text-black rounded-2xl shadow-lg p-8">
           <div className="w-full pb-5 flex items-center justify-center">
             <Logo />
@@ -102,7 +102,7 @@ const Login: React.FC = () => {
               </button>
             </div>
             <Button
-              title={loading ? "Logging in..." : "Login"}
+              title="Login"
               type="submit"
               className="w-full py-2 rounded-lg hover:bg-[#9dcce3] transition"
             />

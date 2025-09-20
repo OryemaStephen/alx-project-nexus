@@ -104,7 +104,7 @@ const Login: React.FC = () => {
             <Button
               title="Login"
               type="submit"
-              className="w-full py-2 rounded-lg hover:bg-[#9dcce3] transition"
+              className="w-full"
             />
           </form>
           <p className="mt-4 text-center text-sm text-gray-600">

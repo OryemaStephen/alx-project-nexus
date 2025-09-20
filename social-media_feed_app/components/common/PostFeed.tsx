@@ -32,7 +32,7 @@ const PostFeed: React.FC = () => {
         <p className="text-center text-gray-400">No posts available.</p>
       )}
       {!loading && !error && data?.posts && (
-        <div className="space-y-4">
+        <div>
           {data.posts.map((post: Post) => (
             <PostCard 
               key={post.id} 

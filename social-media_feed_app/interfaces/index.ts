@@ -9,6 +9,8 @@ export interface ButtonProps {
   type?: "button" | "submit" | "reset";
   className?: string;
   action?: () => void;
+  disabled?: boolean;
+  icon?: React.ReactNode; 
 }
 
 export type MenuItem = {
@@ -49,7 +51,7 @@ export interface LoginFormProps {
 
 export interface PostFormProps {
   content: string;
-  imageUrl: string;
+  imageUrls: File[]
 }
 
 export interface Post {
@@ -59,7 +61,7 @@ export interface Post {
     username: string;
   };
   content: string;
-  imageUrl?: string;
+  imageUrls?: string[]
   createdAt: string;
   likeCount: number;
   commentCount: number;
@@ -95,9 +97,20 @@ export interface UserProfile {
   email: string;
   bio?: string;
   profilePicture?: string;
+  followersCount: number;
+  followingCount: number; 
 }
 
 export interface MeQueryData {
   me: UserProfile;
+}
+
+export interface TooltipProps {
+  title: string;
+  position?: "top" | "bottom" | "left" | "right";
+  children: ReactNode;
+  className?: string;
+  showArrow?: boolean;
+  delay?: number;
 }
 

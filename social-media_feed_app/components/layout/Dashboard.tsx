@@ -44,7 +44,7 @@ const Dashboard: React.FC<ComponentProps> = ({ children }) => {
 
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 md:hidden"
+          className="fixed inset-0 bg-white opacity-90 md:hidden"
           onClick={toggleSidebar}
         ></div>
       )}

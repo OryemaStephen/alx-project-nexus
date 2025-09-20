@@ -6,42 +6,10 @@ import { Post } from "@/interfaces";
 import Dashboard from "@/components/layout/Dashboard";
 import Button from "@/components/common/Button";
 import { toast } from "react-toastify";
+import { mockData } from "@/constants";
 
 const fetchPost = async (id: string): Promise<Post | null> => {
-  const mockPosts: Post[] = [
-    {
-      id: "1",
-      author: { id: "user1", username: "john_doe" },
-      createdAt: "2025-09-18T10:00:00Z",
-      imageUrl: undefined,
-      likeCount: 42,
-      commentCount: 15,
-      shareCount: 7,
-      content: "This is a sample post content.  Hello world! #firstpost", 
-    },
-    {
-      id: "2",
-      author: { id: "user2", username: "jane_smith" },
-      createdAt: "2025-09-17T15:30:00Z",
-      imageUrl: "https://images.unsplash.com/photo-1640920789307-1df7543f5828?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8bW9uZXklMjB0cmFja2luZ3xlbnwwfHwwfHx8MA%3D%3D",
-      likeCount: 23,
-      commentCount: 8,
-      shareCount: 3,
-      content: ""
-    },
-    {
-      id: "3",
-      author: { id: "user3", username: "alice_wonder" },
-      createdAt: "2025-09-16T08:20:00Z",
-      imageUrl: "https://images.unsplash.com/photo-1640920789307-1df7543f5828?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8bW9uZXklMjB0cmFja2luZ3xlbnwwfHwwfHx8MA%3D%3D",
-      likeCount: 67,
-      commentCount: 25,
-      shareCount: 12,
-      content: "Testing the post feed component with some sample data!"
-    },
-  ];
-  
-  return mockPosts.find(post => post.id === id) || null;
+  return mockData.posts.find((post) => post.id === id) || null;
 };
 
 const PostDetailPage: React.FC = () => {
@@ -59,7 +27,7 @@ const PostDetailPage: React.FC = () => {
         setPost(postData);
         setLoading(false);
       };
-      
+
       loadPost();
     }
   }, [id]);
@@ -78,7 +46,7 @@ const PostDetailPage: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh]">
         <h1 className="text-2xl font-bold">Post not found</h1>
-        <button 
+        <button
           onClick={() => router.back()}
           className="mt-4 text-blue-500 hover:underline"
         >
@@ -90,85 +58,95 @@ const PostDetailPage: React.FC = () => {
 
   return (
     <Dashboard>
-    <div className="w-fullp-4">
-      <button 
-        onClick={() => router.back()}
-        className="flex items-center gap-2 mb-6 text-gray-600 hover:text-gray-800"
-      >
-        <ArrowLeft size={20} /> Back
-      </button>
-      
-      <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-        <div className="flex items-center mb-4">
-          <span className="font-bold text-amber-900">
-            {post.author.username}
-          </span>
-          <span className="text-gray-500 text-sm ml-2">
-            {new Date(post.createdAt).toLocaleString()}
-          </span>
+      <div className="w-full">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 mb-6 text-gray-600 hover:text-gray-800"
+        >
+          <ArrowLeft size={20} /> Back
+        </button>
+
+        <div className="bg-white rounded-t-2xl shadow-lg p-4">
+          <div className="flex items-center mb-4">
+            <span className="font-bold text-amber-900">
+              {post.author.username}
+            </span>
+            <span className="text-gray-500 text-sm ml-2">
+              {new Date(post.createdAt).toLocaleString()}
+            </span>
+          </div>
+
+          {post.content && <p className="mb-4 text-gray-800">{post.content}</p>}
+
+          {post.imageUrls && post.imageUrls.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+              {post.imageUrls.map((url, index) => (
+                <div
+                  key={index}
+                  className="w-full h-auto rounded-lg overflow-hidden"
+                >
+                  <Image
+                    src={url}
+                    alt={`Post image ${index + 1}`}
+                    width={400}
+                    height={300}
+                    className="rounded-lg w-full max-h-72"
+                    style={{ objectFit: "cover" }}
+                    priority={index === 0}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex items-center gap-5 text-gray-600 text-sm">
+            <span>{post.likeCount} Likes</span>
+            <span>{post.commentCount} Comments</span>
+            <span>{post.shareCount} Shares</span>
+          </div>
         </div>
-        
-        {post.content && (
-          <p className="mb-4 text-gray-800">{post.content}</p>
-        )}
-        
-        {post.imageUrl && (
-          <div className="w-full h-auto rounded-lg mb-4 overflow-hidden">
-            <Image
-              src={post.imageUrl}
-              alt="Post image"
-              width={600}
-              height={400}
-              className="rounded-lg"
-              style={{ objectFit: "cover" }}
+
+        <div className="bg-white p-4 rounded-b-2xl shadow-lg">
+          <h2 className="text-xl text-black font-semibold mb-4">Comments</h2>
+
+          <div className="mb-4">
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Add a comment..."
+              className="w-full p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A9DEF9]"
+              rows={3}
+            />
+            <Button
+              title={loading ? "Posting..." : "Post Comment"}
+              type="button"
+              action={() => toast.success("Comment feature coming soon!")}
+              className="rounded-md hover:bg-[#9dcce3] transition"
             />
           </div>
-        )}
-        
-        <div className="flex justify-between text-gray-600 text-sm mb-3">
-          <span>{post.likeCount} Likes</span>
-          <span>{post.commentCount} Comments</span>
-          <span>{post.shareCount} Shares</span>
-        </div>
-      </div>
-      
-      <div className="bg-white rounded-2xl shadow-lg p-6">
-        <h2 className="text-xl text-black font-semibold mb-4">Comments</h2>
-        
-        <div className="mb-4">
-          <textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Add a comment..."
-            className="w-full p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A9DEF9] "
-            rows={3}
-          />
-          <Button
-            title={loading ? "Posting..." : "Post Comment"}
-            type="button"
-            action={() => toast.success("Comment feature coming soon!")}
-            className="rounded-md hover:bg-[#9dcce3] transition"
-          />
-        </div>
-        
-        <div className="space-y-4">
-          <div className="border-b border-gray-200 pb-4">
-            <div className="flex items-center mb-2">
-              <span className="font-semibold text-black">jane_doe</span>
-              <span className="text-gray-500 text-sm ml-2">2 hours ago</span>
+
+          <div className="space-y-4">
+            <div className="border-b border-gray-200 pb-4">
+              <div className="flex items-center mb-2">
+                <span className="font-semibold text-black">jane_doe</span>
+                <span className="text-gray-500 text-sm ml-2">2 hours ago</span>
+              </div>
+              <p className="text-gray-700">
+                This is a sample comment on the post.
+              </p>
             </div>
-            <p className="text-gray-700">This is a sample comment on the post.</p>
-          </div>
-          <div className="border-b border-gray-200 pb-4">
-            <div className="flex items-center mb-2">
-              <span className="font-semibold text-black">pitt_02</span>
-              <span className="text-gray-500 text-sm ml-2">2 hours ago</span>
+            <div className="border-b border-gray-200 pb-4">
+              <div className="flex items-center mb-2">
+                <span className="font-semibold text-black">pitt_02</span>
+                <span className="text-gray-500 text-sm ml-2">2 hours ago</span>
+              </div>
+              <p className="text-gray-700">
+                This is a sample comment on the post.
+              </p>
             </div>
-            <p className="text-gray-700">This is a sample comment on the post.</p>
           </div>
         </div>
       </div>
-    </div>
     </Dashboard>
   );
 };

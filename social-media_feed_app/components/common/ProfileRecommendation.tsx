@@ -2,16 +2,21 @@ import Image from "next/image";
 import { Plus } from "lucide-react";
 import { ProfileRecommendationProps } from "@/interfaces";
 import { toast } from "react-toastify";
+import Button from "./Button";
 
-const ProfileRecommendation: React.FC<ProfileRecommendationProps> = ({ users }) => {
+const ProfileRecommendation: React.FC<ProfileRecommendationProps> = ({
+  users,
+}) => {
   const handleFollow = (userId: string) => {
     toast.success(`Following user with ID: ${userId}`);
   };
 
   return (
-    <div className="hidden md:block w-80 ml-4">
+    <div className="hidden lg:block w-80 ml-4">
       <div className="bg-white rounded-2xl shadow-lg p-4 top-0 sticky">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Who to follow</h2>
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          Who to follow
+        </h2>
         <div className="space-y-4">
           {users.map((user) => (
             <div key={user.id} className="flex items-center justify-between">
@@ -31,17 +36,21 @@ const ProfileRecommendation: React.FC<ProfileRecommendationProps> = ({ users }) 
                   )}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{user.username}</p>
-                  <p className="text-xs text-gray-500">{user.followerCount} followers</p>
+                  <p className=" font-medium text-gray-900 capitalize">
+                    {user.username.split("_").join(" ")}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {user.followerCount} followers
+                  </p>
                 </div>
               </div>
-              <button
-                onClick={() => handleFollow(user.id)}
-                className="text-xs bg-[#8fd0f1] hover:bg-[#8fd0f1] py-1 px-3 rounded-full flex items-center"
-              >
-                <Plus size={14} className="mr-1" />
-                Follow
-              </button>
+              <Button
+                type="button"
+                title="Follow"
+                action={() => handleFollow(user.id)}
+                className="text-xs py-1"
+                icon={<Plus className="w-2 h-2" />}
+              />
             </div>
           ))}
         </div>

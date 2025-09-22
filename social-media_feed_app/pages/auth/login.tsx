@@ -48,7 +48,7 @@ const Login: React.FC = () => {
       localStorage.setItem('refresh_token', refresh);
       toast.success('Login successful 🚀');
       router.push('/dashboard');
-    } catch (error: never) {
+    } catch (error: unknown) {
       toast.error(error.response.data.detail);
     } finally {
       setLoading(false);

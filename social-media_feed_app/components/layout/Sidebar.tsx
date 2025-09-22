@@ -28,7 +28,7 @@ const Sidebar: React.FC<SidebarProps> = ({ menuItems, active, onSelect }) => {
             </li>
           ))}
       </ul>
-      <div className="mt-auto mb-20 md:mb-0">
+      <div className="mt-auto mb-14 md:mb-0">
         {menuItems
           .filter((item) => item.id === "logout")
           .map(({ id, label, icon: Icon, path }) => (

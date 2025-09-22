@@ -7,6 +7,8 @@ export const CREATE_USER = gql`
         id
         username
         email
+        bio
+        profilePicture
       }
     }
   }

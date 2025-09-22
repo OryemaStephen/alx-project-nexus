@@ -6,55 +6,57 @@ import Button from "@/components/common/Button";
 import Logo from "@/components/common/Logo";
 import BrowserTitle from "@/components/layout/BrowserTitle";
 import { LoginFormProps } from "@/interfaces";
-// import { LOGIN_MUTATION } from "@/graphql/requests/posts/login";
-// import { useMutation } from "@apollo/client/react";
+import axios from "axios";
+
+const apiUrl = process.env.NEXT_PUBLIC_BASE_AUTH_API_URL;
 
 const Login: React.FC = () => {
   const router = useRouter();
   const [formState, setFormState] = useState<LoginFormProps>({
-    email: "",
+    username: "",
     password: "",
-    showPassword: false,
   });
-
-  // const [login, { loading }] = useMutation(LOGIN_MUTATION);
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPasword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    router.push("/dashboard");
-    // if (!formState.email || !formState.password) {
-    //   toast.error('Please enter both email and password.');
-    //   return;
-    // }
+    if (!formState.username || !formState.password) {
+      toast.error('Please enter both username and password.');
+      return;
+    }
 
-    // try {
-    //   const { data } = await login({
-    //     variables: {
-    //       email: formState.email,
-    //       password: formState.password,
-    //     },
-    //   });
+    setLoading(true);
+    try {
+      const response = await axios.post(`${apiUrl}/login/`, {
+        username: formState.username,
+        password: formState.password,
+      });
 
-    //   console.log('Login response data:', data);
+      const { access, refresh } = response.data;
 
-    //   const token = data?.tokenAuth?.token;
-    //   if (!token) {
-    //     throw new Error('No token returned from server.');
-    //   }
+      if (!access || !refresh) {
+        throw new Error('No tokens returned from server.');
+      }
 
-    //   localStorage.setItem('token', token);
+      if (!access || !refresh) {
+        throw new Error('No tokens returned from server.');
+      }
+
+      localStorage.setItem('access_token', access);
+      localStorage.setItem('refresh_token', refresh);
       toast.success('Login successful 🚀');
-    //   router.push('/dashboard');
-    // } catch (error: unknown) {
-    //   const errorMessage =
-    //     error instanceof Error ? error.message : 'Login failed. Please check your credentials.';
-    //   toast.error(errorMessage);
-    // }
+      router.push('/dashboard');
+    } catch (error: never) {
+      toast.error(error.response.data.detail);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const togglePasswordVisibility = () => {
-    setFormState((prev) => ({ ...prev, showPassword: !prev.showPassword }));
+    setShowPasword(!showPassword );
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,7 +67,7 @@ const Login: React.FC = () => {
   return (
     <>
       <BrowserTitle title="Login" />
-      <div className="flex items-center justify-center bg-gray-100 min-h-screen p-4 bg-">
+      <div className="flex items-center justify-center bg-gray-100 min-h-screen p-4">
         <div className="w-full max-w-md bg-white text-black rounded-2xl shadow-lg p-8">
           <div className="w-full pb-5 flex items-center justify-center">
             <Logo />
@@ -73,16 +75,16 @@ const Login: React.FC = () => {
           <h1 className="text-2xl font-bold text-center mb-6">Welcome Back</h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
-              type="email"
-              name="email"
-              placeholder="Email"
+              type="text"
+              name="username"
+              placeholder="Username"
               className="w-full border rounded-lg px-3 py-2 focus:ring-0 focus:outline-none"
-              value={formState.email}
+              value={formState.username}
               onChange={handleInputChange}
             />
             <div className="relative">
               <input
-                type={formState.showPassword ? "text" : "password"}
+                type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="Password"
                 className="w-full border rounded-lg px-3 py-2 focus:ring-0 focus:outline-none"
@@ -94,7 +96,7 @@ const Login: React.FC = () => {
                 onClick={togglePasswordVisibility}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
-                {formState.showPassword ? (
+                {showPassword ? (
                   <Eye className="w-5 h-5" />
                 ) : (
                   <EyeOff className="w-5 h-5" />
@@ -105,6 +107,7 @@ const Login: React.FC = () => {
               title="Login"
               type="submit"
               className="w-full"
+              disabled={loading}
             />
           </form>
           <p className="mt-4 text-center text-sm text-gray-600">

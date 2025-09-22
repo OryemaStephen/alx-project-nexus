@@ -44,14 +44,13 @@ export interface RegisterFormProps{
 }
 
 export interface LoginFormProps {
-  email: string;
+  username: string;
   password: string;
-  showPassword: boolean;
 }
 
 export interface PostFormProps {
   content: string;
-  imageUrls: File[]
+  imageUrl: File | null
 }
 
 export interface Post {

@@ -13,15 +13,15 @@ const CreatePostForm: React.FC = () => {
   const router = useRouter();
   const [formState, setFormState] = useState<PostFormProps>({
     content: "",
-    imageUrls: [],
+    imageUrl: null,
   });
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
-  const [createPost, { loading }] = useMutation(CREATE_POST_MUTATION, {
+  const [createPost, { loading, error }] = useMutation(CREATE_POST_MUTATION, {
     context: {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
@@ -29,38 +29,35 @@ const CreatePostForm: React.FC = () => {
     },
   });
 
-  const MAX_IMAGES = 4;
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files ? Array.from(e.target.files) : [];
-    const allowedFiles = files.slice(0, MAX_IMAGES);
+    const file = e.target.files ? e.target.files[0] : null;
+    if (!file) return;
 
-    if (files.length > MAX_IMAGES) {
-      toast.warning(`You can only upload ${MAX_IMAGES} images. Select your top ${MAX_IMAGES} images to upload.`);
+    const maxSizeInBytes = 2.5 * 1024 * 1024;
+    if (file.size > maxSizeInBytes) {
+      toast.error("Image size exceeds 2.5MB. Please choose a smaller file.");
+      return;
     }
 
-    setFormState((prev) => ({ ...prev, imageUrls: allowedFiles }));
-
-    const previews = allowedFiles.map((file) => URL.createObjectURL(file));
-    setImagePreviews(previews);
+    setFormState((prev) => ({ ...prev, imageUrl: file }));
+    const preview = URL.createObjectURL(file);
+    setImagePreview(preview);
   };
 
-  const revokePreviews = () => {
-    imagePreviews.forEach((url) => URL.revokeObjectURL(url));
-    setImagePreviews([]);
+  const revokePreview = () => {
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+      setImagePreview(null);
+    }
   };
 
-  const uploadImages = async (files: File[]): Promise<string[]> => {
-    const urls = await Promise.all(
-      files.map(async (file) => {
-        return new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.readAsDataURL(file);
-        });
-      })
-    );
-    return urls;
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -71,22 +68,29 @@ const CreatePostForm: React.FC = () => {
     }
 
     try {
-      const uploadedImageUrls = formState.imageUrls?.length
-        ? await uploadImages(formState.imageUrls)
-        : [];
+      let imageBase64: string | null = null;
+      if (formState.imageUrl instanceof File) {
+        imageBase64 = await fileToBase64(formState.imageUrl);
+      }
 
-      const { data } = await createPost({
-        variables: {
-          content: formState.content,
-          imageUrls: uploadedImageUrls,
-        },
-      });
+      const variables = {
+        content: formState.content.trim(),
+        imageUrl: imageBase64 || undefined, // Send undefined if no image
+      };
 
-      console.log("Post created:", data);
+      const { data } = await createPost({ variables });
+
+      if (!data) {
+        throw new Error("No post data returned from server");
+      }
 
       toast.success("Post created successfully! 🎉");
-      revokePreviews();
+      revokePreview();
       setShowEmojiPicker(false);
+      setFormState({ content: "", imageUrl: null });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       router.push("/dashboard");
     } catch (error: unknown) {
       const errorMessage =
@@ -104,9 +108,9 @@ const CreatePostForm: React.FC = () => {
     setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
-  const clearImages = () => {
-    setFormState((prev) => ({ ...prev, imageUrls: [] }));
-    revokePreviews();
+  const clearImage = () => {
+    setFormState((prev) => ({ ...prev, imageUrl: null }));
+    revokePreview();
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -153,6 +157,11 @@ const CreatePostForm: React.FC = () => {
   return (
     <div className="w-full bg-white text-black rounded-2xl p-4">
       <h1 className="font-bold text-xl mb-4">Create a New Post</h1>
+      {error && (
+        <div className="text-red-500 mb-4">
+          Error: {error.message || "An error occurred while creating the post."}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="relative">
           <textarea
@@ -166,22 +175,41 @@ const CreatePostForm: React.FC = () => {
             ref={textareaRef}
           />
         </div>
-
+        {imagePreview && (
+          <div className="grid grid-cols-1 mb-4">
+            <div className="relative w-full h-auto rounded-lg overflow-hidden">
+              <Image
+                src={imagePreview}
+                alt="Preview"
+                width={200}
+                height={150}
+                className="rounded-lg w-full max-h-36"
+                style={{ objectFit: "cover" }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={clearImage}
+              className="text-red-500 hover:underline mt-2"
+            >
+              Clear Image
+            </button>
+          </div>
+        )}
         <div className="relative flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div>
-              <label htmlFor="imageUrls" className="cursor-pointer">
+              <label htmlFor="imageUrl" className="cursor-pointer">
                 <ImagePlus
                   size={24}
                   className="text-gray-500 hover:text-gray-700"
                 />
               </label>
               <input
-                id="imageUrls"
+                id="imageUrl"
                 type="file"
-                name="imageUrls"
+                name="imageUrl"
                 accept="image/*"
-                multiple
                 ref={fileInputRef}
                 onChange={handleFileChange}
                 className="hidden"
@@ -210,33 +238,6 @@ const CreatePostForm: React.FC = () => {
             </div>
           )}
         </div>
-
-        {imagePreviews.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-            {imagePreviews.map((url, index) => (
-              <div
-                key={index}
-                className="relative w-full h-auto rounded-lg overflow-hidden"
-              >
-                <Image
-                  src={url}
-                  alt={`Preview ${index + 1}`}
-                  width={200}
-                  height={150}
-                  className="rounded-lg w-full max-h-36"
-                  style={{ objectFit: "cover" }}
-                />
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={clearImages}
-              className="text-red-500 hover:underline mt-2"
-            >
-              Clear Images
-            </button>
-          </div>
-        )}
       </form>
     </div>
   );

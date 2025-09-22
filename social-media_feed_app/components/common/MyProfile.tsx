@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { Loader2, Edit, Save, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "react-toastify";
 import { MeQueryData, UserProfile } from "@/interfaces";
 import { ME_QUERY } from "@/graphql/requests/get/getMyProfile";
@@ -27,30 +27,24 @@ const MyProfile: React.FC = () => {
     bio: "",
   });
 
+  const token = localStorage.getItem("access_token");
+  console.log("Token in MyProfile:", token);
+
   const { data, loading, error, refetch } = useQuery<MeQueryData>(ME_QUERY, {
     context: {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        Authorization: `Bearer ${token}`,
       },
     },
     errorPolicy: "all",
   });
 
-  useEffect(() => {
-    if (data?.me) {
-      setEditForm({
-        fullname: data.me.fullname || "",
-        username: data.me.username || "",
-        email: data.me.email || "",
-        bio: data.me.bio || "",
-      });
-    }
-  }, [data]);
+  console.log(data);
 
   const [updateProfile, { loading: updating }] = useMutation(UPDATE_PROFILE_MUTATION, {
     context: {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        Authorization: `Bearer ${token}`,
       },
     },
   });

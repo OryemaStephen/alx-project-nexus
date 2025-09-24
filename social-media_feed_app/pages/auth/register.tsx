@@ -21,8 +21,7 @@ const Register: React.FC = () => {
   const router = useRouter();
 
   const [createUser, { loading }] = useMutation(CREATE_USER, {
-    onCompleted: (data) => {
-      console.log("User created:", data);
+    onCompleted: () => {
       toast.success("Registration successful 🚀");
       router.push("/auth/login");
     },

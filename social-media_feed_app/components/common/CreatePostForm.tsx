@@ -2,12 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 import Button from "@/components/common/Button";
-import { useMutation } from "@apollo/client/react";
-import { PostFormProps } from "@/interfaces";
 import { CREATE_POST_MUTATION } from "@/graphql/requests/posts/createPost";
 import Image from "next/image";
-import { ImagePlus, Send, Smile } from "lucide-react";
+import { Send, Smile } from "lucide-react";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
+import { useMutation } from "@apollo/client/react";
+import { CreatePostMutationData, PostFormProps } from "@/interfaces";
+import { GET_POSTS_QUERY } from "@/graphql/requests/get/getPosts";
 
 const CreatePostForm: React.FC = () => {
   const router = useRouter();
@@ -17,47 +18,29 @@ const CreatePostForm: React.FC = () => {
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageUrlInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
-  const [createPost, { loading, error }] = useMutation(CREATE_POST_MUTATION, {
-    context: {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-      },
-    },
-  });
+  const [createPost, { loading, error }] = useMutation<CreatePostMutationData>(CREATE_POST_MUTATION);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files ? e.target.files[0] : null;
-    if (!file) return;
-
-    const maxSizeInBytes = 2.5 * 1024 * 1024;
-    if (file.size > maxSizeInBytes) {
-      toast.error("Image size exceeds 2.5MB. Please choose a smaller file.");
+  const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const url = e.target.value;
+    if (url.length > 200) {
+      toast.error("Image URL must be 200 characters or less.");
       return;
     }
 
-    setFormState((prev) => ({ ...prev, imageUrl: file }));
-    const preview = URL.createObjectURL(file);
-    setImagePreview(preview);
+    setFormState((prev) => ({ ...prev, imageUrl: url || null }));
+    setImagePreview(url || null);
   };
 
-  const revokePreview = () => {
-    if (imagePreview) {
-      URL.revokeObjectURL(imagePreview);
-      setImagePreview(null);
+  const clearImage = () => {
+    setFormState((prev) => ({ ...prev, imageUrl: null }));
+    setImagePreview(null);
+    if (imageUrlInputRef.current) {
+      imageUrlInputRef.current.value = "";
     }
-  };
-
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => reject(new Error("Failed to read file"));
-      reader.readAsDataURL(file);
-    });
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -68,36 +51,27 @@ const CreatePostForm: React.FC = () => {
     }
 
     try {
-      let imageBase64: string | null = null;
-      if (formState.imageUrl instanceof File) {
-        imageBase64 = await fileToBase64(formState.imageUrl);
-      }
-
       const variables = {
         content: formState.content.trim(),
-        imageUrl: imageBase64 || undefined, // Send undefined if no image
+        imageUrl: formState.imageUrl || undefined,
       };
 
-      const { data } = await createPost({ variables });
+      const { data } = await createPost({
+        variables,
+        refetchQueries: [{ query: GET_POSTS_QUERY }],
+      });
 
-      if (!data) {
+      if (!data?.createPost?.post) {
         throw new Error("No post data returned from server");
       }
 
       toast.success("Post created successfully! 🎉");
-      revokePreview();
+      clearImage();
       setShowEmojiPicker(false);
       setFormState({ content: "", imageUrl: null });
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
       router.push("/dashboard");
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to create post. Please try again.";
-      toast.error(errorMessage);
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -106,14 +80,6 @@ const CreatePostForm: React.FC = () => {
   ) => {
     const { name, value } = e.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const clearImage = () => {
-    setFormState((prev) => ({ ...prev, imageUrl: null }));
-    revokePreview();
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   };
 
   const handleEmojiClick = (emojiData: EmojiClickData) => {
@@ -175,6 +141,17 @@ const CreatePostForm: React.FC = () => {
             ref={textareaRef}
           />
         </div>
+        <div className="relative">
+          <input
+            type="url"
+            name="imageUrl"
+            placeholder="Enter image URL (e.g., https://example.com/image.jpg)"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-0 focus:outline-none"
+            value={formState.imageUrl || ""}
+            onChange={handleImageUrlChange}
+            ref={imageUrlInputRef}
+          />
+        </div>
         {imagePreview && (
           <div className="grid grid-cols-1 mb-4">
             <div className="relative w-full h-auto rounded-lg overflow-hidden">
@@ -185,6 +162,10 @@ const CreatePostForm: React.FC = () => {
                 height={150}
                 className="rounded-lg w-full max-h-36"
                 style={{ objectFit: "cover" }}
+                onError={() => {
+                  toast.error("Invalid image URL. Please provide a valid image.");
+                  clearImage();
+                }}
               />
             </div>
             <button
@@ -198,23 +179,6 @@ const CreatePostForm: React.FC = () => {
         )}
         <div className="relative flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div>
-              <label htmlFor="imageUrl" className="cursor-pointer">
-                <ImagePlus
-                  size={24}
-                  className="text-gray-500 hover:text-gray-700"
-                />
-              </label>
-              <input
-                id="imageUrl"
-                type="file"
-                name="imageUrl"
-                accept="image/*"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                className="hidden"
-              />
-            </div>
             <button
               type="button"
               ref={emojiButtonRef}

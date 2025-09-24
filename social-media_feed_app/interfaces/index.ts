@@ -48,9 +48,16 @@ export interface LoginFormProps {
   password: string;
 }
 
+export interface LoginMutationData {
+  tokenAuth: {
+    token: string;
+    refreshExpiresIn: number;
+    payload: Record<string, unknown>;
+  };
+}
 export interface PostFormProps {
   content: string;
-  imageUrl: File | null
+  imageUrl: string | null;
 }
 
 export interface Post {
@@ -58,18 +65,33 @@ export interface Post {
   author: {
     id: string;
     username: string;
+    profilePicture?: string | null;
   };
   content: string;
-  imageUrls?: string[]
+  imageUrl: string | null;
   createdAt: string;
   likeCount: number;
   commentCount: number;
   shareCount: number;
 }
 
-export interface PostsQueryResult {
+export interface CreatePostMutationData {
+  createPost: {
+    post: {
+      id: string;
+      content: string;
+      imageUrl: string | null;
+    };
+  };
+}
+
+export interface PostsQueryResults {
   posts: Post[];
 };
+
+export interface PostQueryResult {
+  post: Post | null;
+}
 
 export interface PostCardProps {
   post: Post;
@@ -111,5 +133,71 @@ export interface TooltipProps {
   className?: string;
   showArrow?: boolean;
   delay?: number;
+}
+
+export interface AvatarProps {
+  username: string;
+  profilePicture?: string | null;
+  size?: "sm" | "md" | "lg";
+  className?: string;
+}
+
+export interface Comment {
+  id: string;
+  user: {
+    username: string;
+    profilePicture?: string | null;
+  };
+  post: {
+    id: string;
+  };
+  content: string;
+  createdAt: string;
+}
+
+export interface CommentsQueryResult {
+  comments: Comment[];
+}
+
+export interface AddCommentMutationData {
+  addComment: {
+    comment: Comment;
+  };
+}
+
+export interface LikeMutationData {
+  likePost: {
+    like: {
+      id: string;
+      user: {
+        username: string;
+        profilePicture?: string | null;
+      };
+      post: {
+        id: string;
+      };
+      createdAt: string;
+    };
+  };
+}
+
+export interface UserLikeQueryResult {
+  userLike: {
+    id: string;
+    user: {
+      username: string;
+      profilePicture?: string | null;
+    };
+    post: {
+      id: string;
+    };
+    createdAt: string;
+  } | null;
+}
+
+export interface UnlikeMutationData {
+  unlikePost: {
+    success: boolean;
+  };
 }
 

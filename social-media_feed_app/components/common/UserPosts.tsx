@@ -59,7 +59,7 @@ const UserPosts: React.FC = () => {
         <p className="text-center text-gray-400">No posts available for this user.</p>
       )}
       {!loading && !error && posts.length > 0 && (
-        <div className="space-y-4">
+        <div>
           {posts.map((post: Post) => (
             <PostCard
               key={post.id}

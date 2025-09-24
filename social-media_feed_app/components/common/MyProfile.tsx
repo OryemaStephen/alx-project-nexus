@@ -13,7 +13,8 @@ const mockUserData: UserProfile = {
   fullname: "John Doe",
   email: "john.doe@example.com",
   bio: "Software developer passionate about building amazing user experiences. Love hiking and photography in my free time!",
-  profilePicture: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+  profilePicture:
+    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
   followersCount: 123,
   followingCount: 456,
 };
@@ -27,27 +28,11 @@ const MyProfile: React.FC = () => {
     bio: "",
   });
 
-  const token = localStorage.getItem("access_token");
-  console.log("Token in MyProfile:", token);
+  const { data, loading, error, refetch } = useQuery<MeQueryData>(ME_QUERY);
 
-  const { data, loading, error, refetch } = useQuery<MeQueryData>(ME_QUERY, {
-    context: {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-    errorPolicy: "all",
-  });
-
-  console.log(data);
-
-  const [updateProfile, { loading: updating }] = useMutation(UPDATE_PROFILE_MUTATION, {
-    context: {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  });
+  const [updateProfile, { loading: updating }] = useMutation(
+    UPDATE_PROFILE_MUTATION
+  );
 
   const userData = data?.me || mockUserData;
 
@@ -63,9 +48,11 @@ const MyProfile: React.FC = () => {
     setIsEditing(!isEditing);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setEditForm(prev => ({ ...prev, [name]: value }));
+    setEditForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSave = async () => {
@@ -78,23 +65,26 @@ const MyProfile: React.FC = () => {
             username: editForm.username,
             email: editForm.email,
             bio: editForm.bio,
-          }
-        }
+          },
+        },
       });
 
       toast.success("Profile updated successfully! 🎉");
       setIsEditing(false);
       refetch();
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error
-        ? error.message
-        : "Failed to update profile. Please try again.";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to update profile. Please try again.";
       toast.error(errorMessage);
     }
   };
 
   if (error) {
-    console.error(error.message || "Failed to fetch profile. Using sample data.");
+    console.error(
+      error.message || "Failed to fetch profile. Using sample data."
+    );
   }
 
   if (loading) {
@@ -163,8 +153,12 @@ const MyProfile: React.FC = () => {
                     </div>
                   ) : (
                     <div>
-                      <h2 className="text-2xl font-bold text-black">{userData.fullname}</h2>
-                      <p className="text-gray-700 text-lg">@{userData.username}</p>
+                      <h2 className="text-2xl font-bold text-black">
+                        {userData.fullname}
+                      </h2>
+                      <p className="text-gray-700 text-lg">
+                        @{userData.username}
+                      </p>
                       <p className="text-gray-800 text-sm">{userData.email}</p>
                     </div>
                   )}
@@ -192,10 +186,16 @@ const MyProfile: React.FC = () => {
               {/* Social Stats */}
               <div className="flex gap-6 text-sm font-medium text-gray-700">
                 <div>
-                  <span className="font-bold">{userData.followersCount || 0}</span> Followers
+                  <span className="font-bold">
+                    {userData.followersCount || 0}
+                  </span>{" "}
+                  Followers
                 </div>
                 <div>
-                  <span className="font-bold">{userData.followingCount || 0}</span> Following
+                  <span className="font-bold">
+                    {userData.followingCount || 0}
+                  </span>{" "}
+                  Following
                 </div>
                 <div>
                   <span className="font-bold">0</span> Posts
@@ -219,7 +219,9 @@ const MyProfile: React.FC = () => {
                 placeholder="Tell us about yourself"
               />
             ) : (
-              <p className="text-gray-700 whitespace-pre-line">{userData.bio || "No bio yet."}</p>
+              <p className="text-gray-700 whitespace-pre-line">
+                {userData.bio || "No bio yet."}
+              </p>
             )}
           </div>
         </div>

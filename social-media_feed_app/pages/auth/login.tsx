@@ -5,10 +5,9 @@ import { Eye, EyeOff } from "lucide-react";
 import Button from "@/components/common/Button";
 import Logo from "@/components/common/Logo";
 import BrowserTitle from "@/components/layout/BrowserTitle";
-import { LoginFormProps } from "@/interfaces";
-import axios from "axios";
-
-const apiUrl = process.env.NEXT_PUBLIC_BASE_AUTH_API_URL;
+import { LoginFormProps, LoginMutationData } from "@/interfaces";
+import { useMutation } from "@apollo/client/react";
+import { LOGIN_MUTATION } from "@/graphql/requests/posts/login";
 
 const Login: React.FC = () => {
   const router = useRouter();
@@ -17,46 +16,48 @@ const Login: React.FC = () => {
     password: "",
   });
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPasword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginMutation] = useMutation<LoginMutationData>(LOGIN_MUTATION);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!formState.username || !formState.password) {
-      toast.error('Please enter both username and password.');
+    if (!formState.username) {
+      toast.error('Please enter password.');
+      return;
+    } else if(!formState.password){
+      toast.error('Please enter username .');
       return;
     }
 
     setLoading(true);
     try {
-      const response = await axios.post(`${apiUrl}/login/`, {
-        username: formState.username,
-        password: formState.password,
+      const { data } = await loginMutation({
+        variables: {
+          username: formState.username,
+          password: formState.password,
+        },
       });
 
-      const { access, refresh } = response.data;
+      const { token, refreshExpiresIn } = data!.tokenAuth;
 
-      if (!access || !refresh) {
+      if (!token || !refreshExpiresIn) {
         throw new Error('No tokens returned from server.');
       }
 
-      if (!access || !refresh) {
-        throw new Error('No tokens returned from server.');
-      }
-
-      localStorage.setItem('access_token', access);
-      localStorage.setItem('refresh_token', refresh);
+      localStorage.setItem('access_token', token);
       toast.success('Login successful 🚀');
       router.push('/dashboard');
     } catch (error) {
       console.error(error);
+      toast.error('Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
   };
 
   const togglePasswordVisibility = () => {
-    setShowPasword(!showPassword );
+    setShowPassword(!showPassword);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

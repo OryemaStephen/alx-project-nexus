@@ -3,12 +3,14 @@ import { Heart, MessageCircle, Share } from "lucide-react";
 import { PostCardProps } from "@/interfaces";
 import { useState } from "react";
 import { toast } from "react-toastify";
+import Avatar from "./Avatar";
 
 const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likeCount);
 
-  const handleLike = () => {
+  const handleLike = (event: React.MouseEvent) => {
+    event.stopPropagation();
     if (isLiked) {
       setLikeCount(likeCount - 1);
     } else {
@@ -18,8 +20,16 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
   };
 
   return (
-    <div className="bg-white text-black w-full md:max-w-4xl border-b border-gray-200 p-4">
-      <div className="flex items-center mb-4">
+    <div
+      onClick={onOpenPost}
+      className="bg-white cursor-pointer text-black w-full md:max-w-4xl border-b border-gray-200 p-4"
+    >
+      <div className="flex items-center gap-2 mb-4">
+        <Avatar
+          username={post.author.username}
+          profilePicture={post.author.profilePicture}
+          size="md"
+        />
         <span className="font-bold text-amber-900 cursor-pointer hover:underline">
           {post.author.username}
         </span>
@@ -30,21 +40,16 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
 
       {post.content && <p className="mb-4 text-gray-800">{post.content}</p>}
 
-      {post.imageUrls && post.imageUrls.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-          {post.imageUrls.map((url, index) => (
-            <div key={index} className="w-full h-auto rounded-lg overflow-hidden">
-              <Image
-                src={url}
-                alt={`Post image ${index + 1}`}
-                width={400}
-                height={300}
-                className="rounded-lg w-full max-h-72"
-                style={{ objectFit: "cover" }}
-                priority={index === 0}
-              />
-            </div>
-          ))}
+      {post.imageUrl && (
+        <div className="w-full h-auto rounded-lg overflow-hidden">
+          <Image
+            src={post.imageUrl}
+            alt={`${post.author.username} image`}
+            width={400}
+            height={300}
+            className="rounded-lg w-full max-h-72"
+            style={{ objectFit: "cover" }}
+          />
         </div>
       )}
 
@@ -55,7 +60,8 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
             isLiked ? "text-green-500" : "text-gray-500"
           }`}
         >
-          {likeCount} <Heart size={20} fill={isLiked ? "currentColor" : "none"} />
+          {likeCount}{" "}
+          <Heart size={20} fill={isLiked ? "currentColor" : "none"} />
           {likeCount > 1 ? "Likes" : "Like"}
         </button>
 

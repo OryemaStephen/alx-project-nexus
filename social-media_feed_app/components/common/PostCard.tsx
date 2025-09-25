@@ -48,7 +48,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
   );
 
   const isLiked = user ? likedPosts.includes(post.id) || likesData?.likes.some((like) => like.user.id === user.username) || false : false;
-  const likeCount = isLiked && !likesData?.likes.some((like) => like.user.username === user.username) ? post.likeCount + 1 : post.likeCount;
+  // const likeCount = isLiked && !likesData?.likes.some((like) => like.user.username === user.username) ? post.likeCount + 1 : post.likeCount;
 
   const handleToggleLike = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -152,8 +152,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
           } ${likeMutationLoading || likesLoading || !user ? "opacity-50 cursor-not-allowed" : ""}`}
           disabled={likeMutationLoading || likesLoading || !user || isLiked}
         >
-          {likeCount} <Heart size={15} fill={isLiked ? "currentColor" : "none"} />
-           {/* {isLiked ? "Unlike" : "Like"} */}
+           <Heart size={15} fill={isLiked ? "currentColor" : "none"} />
         </button>
 
         <button

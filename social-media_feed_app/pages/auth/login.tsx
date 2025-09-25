@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
-import { Eye, EyeOff } from "lucide-react";
-import Button from "@/components/common/Button";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Logo from "@/components/common/Logo";
 import BrowserTitle from "@/components/layout/BrowserTitle";
 import { LoginFormProps, LoginMutationData } from "@/interfaces";
@@ -23,10 +22,10 @@ const Login: React.FC = () => {
     e.preventDefault();
 
     if (!formState.username) {
-      toast.error('Please enter password.');
+      toast.error("Please enter password.");
       return;
-    } else if(!formState.password){
-      toast.error('Please enter username .');
+    } else if (!formState.password) {
+      toast.error("Please enter username .");
       return;
     }
 
@@ -42,15 +41,15 @@ const Login: React.FC = () => {
       const { token, refreshExpiresIn } = data!.tokenAuth;
 
       if (!token || !refreshExpiresIn) {
-        throw new Error('No tokens returned from server.');
+        throw new Error("No tokens returned from server.");
       }
 
-      localStorage.setItem('access_token', token);
-      toast.success('Login successful 🚀');
-      router.push('/dashboard');
+      localStorage.setItem("access_token", token);
+      toast.success("Login successful 🚀");
+      router.push("/dashboard");
     } catch (error) {
       console.error(error);
-      toast.error('Login failed. Please check your credentials.');
+      toast.error("Login failed. Please check your credentials.");
     } finally {
       setLoading(false);
     }
@@ -104,12 +103,19 @@ const Login: React.FC = () => {
                 )}
               </button>
             </div>
-            <Button
-              title="Login"
+            <button
               type="submit"
-              className="w-full"
               disabled={loading}
-            />
+              className= "flex w-full items-center gap-2 justify-center cursor-pointer px-8 py-2 border-2 border-[#A9DEF9] bg-[#A9DEF9] rounded-full hover:bg-[#6396b0] text-black transition-colors duration-300"
+            >
+              {loading ? (
+                  <div className="flex items-center gap-1">
+                    <Loader2 className="animate-spin"/> Logging in ...
+                  </div>
+                ) : (
+                  "Login"
+                )}
+            </button>
           </form>
           <p className="mt-4 text-center text-sm text-gray-600">
             Don’t have an account?{" "}

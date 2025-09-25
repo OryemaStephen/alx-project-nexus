@@ -2,9 +2,19 @@ import { SidebarProps } from "@/interfaces";
 import React from "react";
 import Logo from "../common/Logo";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 
 const Sidebar: React.FC<SidebarProps> = ({ menuItems, active, onSelect }) => {
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem('access_token');
+    toast.success('Logged out successfully 👋');
+    onSelect('logout');
+    router.push('/auth/login');
+  };
+
   return (
     <aside className="bg-white text-black w-64 min-h-screen p-4 shadow-lg flex flex-col">
       <div className="pb-8">
@@ -31,21 +41,17 @@ const Sidebar: React.FC<SidebarProps> = ({ menuItems, active, onSelect }) => {
       <div className="mt-auto mb-14 md:mb-0">
         {menuItems
           .filter((item) => item.id === "logout")
-          .map(({ id, label, icon: Icon, path }) => (
-            <Link
+          .map(({ id, label, icon: Icon }) => (
+            <button
               key={id}
-              href={path}
-              onClick={() => {
-                onSelect(id)
-                toast.success('Logged out successfully 👋');
-              }}
-              className={`cursor-pointer px-4 py-2 rounded-lg flex items-center gap-2 transition ${
+              onClick={handleLogout}
+              className={`cursor-pointer px-4 py-2 rounded-lg flex items-center gap-2 transition w-full text-left ${
                 active === id ? "bg-[#A9DEF9] text-red-500" : "hover:bg-[#8fd0f1] text-red-400"
               }`}
             >
               <Icon size={18} />
               {label}
-            </Link>
+            </button>
           ))}
       </div>
     </aside>

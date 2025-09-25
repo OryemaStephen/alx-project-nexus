@@ -157,7 +157,7 @@ type Post {
  id: ID!
  author: User!
  content: String!
- imageUrl: String
+ image: String
  createdAt: String!
  likeCount: Int!
  commentCount: Int!

@@ -57,7 +57,7 @@ export interface LoginMutationData {
 }
 export interface PostFormProps {
   content: string;
-  imageUrl: string | null;
+  image: File | null;
 }
 
 export interface Post {
@@ -68,7 +68,7 @@ export interface Post {
     profilePicture?: string | null;
   };
   content: string;
-  imageUrl: string | null;
+  image: string | null;
   createdAt: string;
   likeCount: number;
   commentCount: number;
@@ -79,8 +79,13 @@ export interface CreatePostMutationData {
   createPost: {
     post: {
       id: string;
+      author: {
+        id: string;
+        username: string;
+      };
       content: string;
-      imageUrl: string | null;
+      image: string | null;
+      createdAt: string;
     };
   };
 }
@@ -199,5 +204,52 @@ export interface UnlikeMutationData {
   unlikePost: {
     success: boolean;
   };
+}
+
+export interface ShareMutationData {
+  sharePost: {
+    share: {
+      id: string;
+      user: {
+        username: string;
+        profilePicture?: string | null;
+      };
+      post: {
+        id: string;
+      };
+      message?: string | null;
+      createdAt: string;
+    };
+  };
+}
+
+export interface DecodedToken {
+  userId: string;
+  username: string;
+  email: string;
+  roles: string[];
+  exp: number;
+  iat: number;
+}
+
+export interface Like {
+  id: string;
+  user: {
+    id: string;
+    username: string;
+    profilePicture?: string | null;
+  };
+  post: {
+    id: string;
+  };
+  createdAt: string;
+}
+
+export interface PostQueryResult {
+  post: Post | null;
+}
+
+export interface LikesQueryResult {
+  likes: Like[];
 }
 

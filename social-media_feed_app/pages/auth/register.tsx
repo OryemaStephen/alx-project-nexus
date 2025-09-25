@@ -1,10 +1,9 @@
-import Button from "@/components/common/Button";
 import Logo from "@/components/common/Logo";
 import BrowserTitle from "@/components/layout/BrowserTitle";
 import { CREATE_USER } from "@/graphql/requests/posts/createUser";
 import { RegisterFormProps } from "@/interfaces";
 import { useMutation } from "@apollo/client/react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { toast } from "react-toastify";
@@ -147,12 +146,19 @@ const Register: React.FC = () => {
                 )}
               </button>
             </div>
-            <Button
-              title={loading ? "Registering..." : "Register"}
+            <button
               type="submit"
               disabled={loading}
-              className="w-full"
-            />
+              className= "flex w-full items-center gap-2 justify-center cursor-pointer px-8 py-2 border-2 border-[#A9DEF9] bg-[#A9DEF9] rounded-full hover:bg-[#6396b0] text-black transition-colors duration-300"
+            >
+              {loading ? (
+                  <div className="flex items-center gap-1">
+                    <Loader2 className="animate-spin"/> Signing up ...
+                  </div>
+                ) : (
+                  "Sign Up"
+                )}
+            </button>
           </form>
           <p className="mt-4 text-center text-sm text-gray-600">
             Already have an account?{" "}

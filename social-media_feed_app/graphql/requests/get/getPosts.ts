@@ -9,11 +9,8 @@ export const GET_POSTS_QUERY = gql`
         username
       }
       content
-      imageUrl
+      image
       createdAt
-      likeCount
-      commentCount
-      shareCount
     }
   }
 `;

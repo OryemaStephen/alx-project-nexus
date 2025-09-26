@@ -1,9 +1,7 @@
 import MyProfile from "@/components/common/MyProfile";
 import ProfileRecommendation from "@/components/common/ProfileRecommendation";
-// import UserPosts from "@/components/common/UserPosts";
 import BrowserTitle from "@/components/layout/BrowserTitle";
 import Dashboard from "@/components/layout/Dashboard";
-import { mockRecommendations } from "@/constants";
 
 const Profile: React.FC = () => {
   return (
@@ -13,9 +11,8 @@ const Profile: React.FC = () => {
       <div className="text-black flex">
         <div className="flex-1 max-w-4xl">
           <MyProfile />
-          {/* <UserPosts /> */}
         </div>
-        <ProfileRecommendation users={mockRecommendations} />
+        <ProfileRecommendation />
       </div>
     </Dashboard>
   );

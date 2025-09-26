@@ -9,7 +9,6 @@ interface CommentsProps {
 }
 
 const Comments: React.FC<CommentsProps> = ({ postId }) => {
-  // Fetch comments using Apollo Client
   const { data, loading, error } = useQuery<CommentsQueryResult>(GET_COMMENTS_QUERY, {
     variables: { postId },
   });

@@ -21,18 +21,15 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
   });
   const user = useCurrentUser();
 
-  // Sync likedPosts with localStorage
   useEffect(() => {
     localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
   }, [likedPosts]);
 
-  // Fetch the likes for the post
   const { data: likesData, loading: likesLoading } = useQuery<LikesQueryResult>(GET_LIKES_QUERY, {
     variables: { postId: parseInt(post.id, 10) },
     skip: !post.id,
   });
 
-  // Set up mutations
   const [likePost, { loading: likeMutationLoading }] = useMutation<LikeMutationData>(
     LIKE_POST_MUTATION,
     {
@@ -48,8 +45,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
   );
 
   const isLiked = user ? likedPosts.includes(post.id) || likesData?.likes.some((like) => like.user.id === user.username) || false : false;
-  // const likeCount = isLiked && !likesData?.likes.some((like) => like.user.username === user.username) ? post.likeCount + 1 : post.likeCount;
-
   const handleToggleLike = (event: React.MouseEvent) => {
     event.stopPropagation();
     if (!user) {
@@ -61,7 +56,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
       return;
     }
 
-    // Update client-side state immediately
     setLikedPosts((prev) => {
       if (prev.includes(post.id)) {
         return prev.filter((id) => id !== post.id);
@@ -69,7 +63,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
       return [...prev, post.id];
     });
 
-    // Fire-and-forget like mutation
     likePost({
       variables: { postId: parseInt(post.id, 10) },
     }).catch((err) => {
@@ -80,7 +73,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
     toast.success(isLiked ? "Post unliked!" : "Post liked! ❤️");
   };
 
-  // Handle share submission
   const handleSharePost = async (event: React.MouseEvent) => {
     event.stopPropagation();
     if (!user) {
@@ -131,10 +123,10 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
 
       {post.content && <p className="mb-4 text-gray-800">{post.content}</p>}
 
-      {post.image && (
+      {post.imageUrl && (
         <div className="w-full h-auto rounded-lg overflow-hidden">
           <Image
-            src={post.image}
+            src={post.imageUrl}
             alt={`${post.author.username} image`}
             width={400}
             height={300}
@@ -160,7 +152,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
           className="flex items-center gap-1 text-gray-500"
         >
           {post.commentCount} <MessageCircle size={15} />
-          {/* {post.commentCount > 1 ? "Comments" : "Comment"} */}
         </button>
 
         <button

@@ -15,7 +15,6 @@ export const useCurrentUser = () => {
 
     try {
       const decoded: DecodedToken = jwtDecode(token);
-      console.log(decoded);
       setUser(decoded);
     } catch (error) {
       console.error("Failed to decode token:", error);

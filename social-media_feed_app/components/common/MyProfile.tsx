@@ -1,11 +1,8 @@
 import Image from "next/image";
-import { useQuery, useMutation } from "@apollo/client/react";
-import { Loader2, Edit, Save, X } from "lucide-react";
-import { useState } from "react";
-import { toast } from "react-toastify";
+import { useQuery } from "@apollo/client/react";
+import { Loader2 } from "lucide-react";
 import { MeQueryData, UserProfile } from "@/interfaces";
 import { ME_QUERY } from "@/graphql/requests/get/getMyProfile";
-import { UPDATE_PROFILE_MUTATION } from "@/graphql/requests/posts/updateProfile";
 
 const mockUserData: UserProfile = {
   id: "user123",
@@ -20,66 +17,9 @@ const mockUserData: UserProfile = {
 };
 
 const MyProfile: React.FC = () => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({
-    fullname: "",
-    username: "",
-    email: "",
-    bio: "",
-  });
-
-  const { data, loading, error, refetch } = useQuery<MeQueryData>(ME_QUERY);
-
-  const [updateProfile, { loading: updating }] = useMutation(
-    UPDATE_PROFILE_MUTATION
-  );
+  const { data, loading, error } = useQuery<MeQueryData>(ME_QUERY);
 
   const userData = data?.me || mockUserData;
-
-  const handleEditToggle = () => {
-    if (isEditing) {
-      setEditForm({
-        fullname: userData.fullname || "",
-        username: userData.username || "",
-        email: userData.email || "",
-        bio: userData.bio || "",
-      });
-    }
-    setIsEditing(!isEditing);
-  };
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setEditForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSave = async () => {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { data } = await updateProfile({
-        variables: {
-          input: {
-            fullname: editForm.fullname,
-            username: editForm.username,
-            email: editForm.email,
-            bio: editForm.bio,
-          },
-        },
-      });
-
-      toast.success("Profile updated successfully! 🎉");
-      setIsEditing(false);
-      refetch();
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to update profile. Please try again.";
-      toast.error(errorMessage);
-    }
-  };
 
   if (error) {
     console.error(
@@ -124,66 +64,16 @@ const MyProfile: React.FC = () => {
             <div className="flex-1 flex flex-col">
               <div className="flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
                 <div className="flex-1">
-                  {isEditing ? (
-                    <div className="space-y-2">
-                      <input
-                        type="text"
-                        name="fullname"
-                        value={editForm.fullname}
-                        onChange={handleInputChange}
-                        className="text-2xl font-bold border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-[#8fd0f1] w-full"
-                        placeholder="Full Name"
-                      />
-                      <input
-                        type="text"
-                        name="username"
-                        value={editForm.username}
-                        onChange={handleInputChange}
-                        className="text-lg text-gray-400 border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-[#8fd0f1] w-full"
-                        placeholder="Username"
-                      />
-                      <input
-                        type="email"
-                        name="email"
-                        value={editForm.email}
-                        onChange={handleInputChange}
-                        className="text-sm text-gray-600 border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-[#8fd0f1] w-full"
-                        placeholder="Email"
-                      />
-                    </div>
-                  ) : (
-                    <div>
-                      <h2 className="text-2xl font-bold text-black">
-                        {userData.fullname}
-                      </h2>
-                      <p className="text-gray-700 text-lg">
-                        @{userData.username}
-                      </p>
-                      <p className="text-gray-800 text-sm">{userData.email}</p>
-                    </div>
-                  )}
-                </div>
-                <div className="self-center sm:self-auto">
-                  <button
-                    onClick={handleEditToggle}
-                    className="flex items-center gap-2 bg-[#8fd0f1] hover:bg-[#7ac0e1] text-black px-4 py-2 rounded-full transition"
-                  >
-                    {isEditing ? (
-                      <>
-                        <X size={18} />
-                        Cancel
-                      </>
-                    ) : (
-                      <>
-                        <Edit size={18} />
-                        Edit Profile
-                      </>
-                    )}
-                  </button>
+                  <h2 className="text-2xl font-bold text-black">
+                    {userData.fullname}
+                  </h2>
+                  <p className="text-gray-700 text-lg">
+                    @{userData.username}
+                  </p>
+                  <p className="text-gray-800 text-sm">{userData.email}</p>
                 </div>
               </div>
 
-              {/* Social Stats */}
               <div className="flex gap-6 text-sm font-medium text-gray-700">
                 <div>
                   <span className="font-bold">
@@ -209,39 +99,11 @@ const MyProfile: React.FC = () => {
         <div className="mt-6">
           <div className="bg-[#f8f9fa] p-4 rounded-lg border border-[#e9ecef]">
             <h3 className="text-lg font-semibold text-gray-800 mb-2">Bio</h3>
-            {isEditing ? (
-              <textarea
-                name="bio"
-                value={editForm.bio}
-                onChange={handleInputChange}
-                rows={4}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#8fd0f1] resize-none"
-                placeholder="Tell us about yourself"
-              />
-            ) : (
-              <p className="text-gray-700 whitespace-pre-line">
-                {userData.bio || "No bio yet."}
-              </p>
-            )}
+            <p className="text-gray-700 whitespace-pre-line">
+              {userData.bio || "No bio yet."}
+            </p>
           </div>
         </div>
-
-        {isEditing && (
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={handleSave}
-              disabled={updating}
-              className="bg-[#8fd0f1] hover:bg-[#7ac0e1] text-black px-4 py-2 rounded-full transition flex items-center gap-2"
-            >
-              {updating ? (
-                <Loader2 className="animate-spin" size={18} />
-              ) : (
-                <Save size={18} />
-              )}
-              {updating ? "Saving..." : "Save Changes"}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

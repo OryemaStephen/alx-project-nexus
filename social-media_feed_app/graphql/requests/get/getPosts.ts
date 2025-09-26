@@ -9,7 +9,7 @@ export const GET_POSTS_QUERY = gql`
         username
       }
       content
-      image
+      imageUrl
       createdAt
     }
   }

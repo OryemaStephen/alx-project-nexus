@@ -3,7 +3,6 @@ import Dashboard from "../../components/layout/Dashboard";
 import CreatePostForm from "@/components/common/CreatePostForm";
 import PostFeed from "@/components/common/PostFeed";
 import ProfileRecommendation from "@/components/common/ProfileRecommendation";
-import { mockRecommendations } from "@/constants";
 
 const Home: React.FC = () => {
   return (
@@ -14,7 +13,7 @@ const Home: React.FC = () => {
           <CreatePostForm />
           <PostFeed />
         </div>
-        <ProfileRecommendation users={mockRecommendations} />
+        <ProfileRecommendation />
       </div>
     </Dashboard>
   );

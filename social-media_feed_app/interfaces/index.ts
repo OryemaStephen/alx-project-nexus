@@ -57,7 +57,7 @@ export interface LoginMutationData {
 }
 export interface PostFormProps {
   content: string;
-  image: File | null;
+  imageUrl: string | "";
 }
 
 export interface Post {
@@ -68,7 +68,7 @@ export interface Post {
     profilePicture?: string | null;
   };
   content: string;
-  image: string | null;
+  imageUrl: string | null;
   createdAt: string;
   likeCount: number;
   commentCount: number;
@@ -84,7 +84,7 @@ export interface CreatePostMutationData {
         username: string;
       };
       content: string;
-      image: string | null;
+      imageUrl: string | null;
       createdAt: string;
     };
   };

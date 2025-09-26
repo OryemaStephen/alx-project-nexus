@@ -9,7 +9,7 @@ export const GET_POST_QUERY = gql`
         profilePicture
       }
       content
-      image
+      imageUrl
       createdAt
     }
   }

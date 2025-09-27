@@ -1,42 +1,124 @@
 import Image from "next/image";
-import { Plus } from "lucide-react";
+import { Plus, Check } from "lucide-react";
 import { toast } from "react-toastify";
 import Button from "./Button";
-import { gql } from "@apollo/client";
-import { useQuery } from "@apollo/client/react";
+import { useQuery, useMutation } from "@apollo/client/react";
+import { GET_USERS_QUERY } from "@/graphql/requests/get/getUsers";
+import { useState } from "react";
+import {
+  GET_USER_FOLLOWERS,
+  GET_USER_FOLLOWING,
+} from "@/graphql/requests/get/getUserFollow";
+import { FollowType, UserData, UserFollowers, UserFollowing } from "@/interfaces";
+import { FOLLOW_USER_MUTATION } from "@/graphql/requests/posts/followUser";
+import { UNFOLLOW_USER_MUTATION } from "@/graphql/requests/posts/unFollowUser";
 
-const GET_USERS = gql`
-  query GetUsers {
-    users {
-      id
-      username
-      email
-      bio
-      profilePicture
-    }
-  }
-`;
-
-interface UserData {
-  users: {
-    id: string;
-    username: string;
-    email: string;
-    bio: string;
-    profilePicture: string;
-  }[];
-}
 
 const ProfileRecommendation: React.FC = () => {
-  const { data, loading } = useQuery<UserData>(GET_USERS);
+  const { data: usersData, loading: usersLoading } =
+    useQuery<UserData>(GET_USERS_QUERY);
 
-  console.log(data?.users);
+  let localUser: { id: string } | null = null;
+  try {
+    const storedUser = localStorage.getItem("logged_in_user");
+    if (storedUser) {
+      localUser = JSON.parse(storedUser);
+    }
+  } catch (err) {
+    console.error("Failed to parse logged_in_user from localStorage:", err);
+  }
 
-  const handleFollow = (userId: string) => {
-    toast.success(`Following user with ID: ${userId}`);
+  const { data: followersData, loading: followersLoading } =
+    useQuery<UserFollowers>(GET_USER_FOLLOWERS, {
+      variables: { userId: localUser ? parseInt(localUser.id) : 0 },
+      skip: !localUser?.id,
+    });
+
+  const { data: followingData, loading: followingLoading } =
+    useQuery<UserFollowing>(GET_USER_FOLLOWING, {
+      variables: { userId: localUser ? parseInt(localUser.id) : 0 },
+      skip: !localUser?.id,
+    });
+
+  const [loadingStates, setLoadingStates] = useState<{
+    [key: string]: boolean;
+  }>({});
+
+  const [followUser] = useMutation<
+    { followUser: { follow: FollowType } },
+    { userId: number }
+  >(FOLLOW_USER_MUTATION, {
+    refetchQueries: [
+      { query: GET_USERS_QUERY },
+      {
+        query: GET_USER_FOLLOWERS,
+        variables: { userId: localUser ? parseInt(localUser.id) : 0 },
+      },
+      {
+        query: GET_USER_FOLLOWING,
+        variables: { userId: localUser ? parseInt(localUser.id) : 0 },
+      },
+    ],
+    onCompleted: () => {
+      toast.success("Successfully followed user!");
+    },
+    onError: (error) => {
+      toast.error(`Error following user: ${error.message}`);
+    },
+  });
+
+  const [unfollowUser] = useMutation<
+    { unfollowUser: { follow: { id: string } } },
+    { userId: number }
+  >(UNFOLLOW_USER_MUTATION, {
+    refetchQueries: [
+      { query: GET_USERS_QUERY },
+      {
+        query: GET_USER_FOLLOWING,
+        variables: { userId: localUser ? parseInt(localUser.id) : 0 },
+      },
+    ],
+    onCompleted: () => {
+      toast.success("Successfully unfollowed user!");
+    },
+    onError: (error) => {
+      toast.error(`Error unfollowing user: ${error.message}`);
+    },
+  });
+
+  const handleFollowToggle = async (userId: string) => {
+    try {
+      setLoadingStates((prev) => ({ ...prev, [userId]: true }));
+      const isFollowing = followingData?.following.some((f) => f.id === userId);
+      const parsedUserId = parseInt(userId);
+
+      if (isFollowing) {
+        await unfollowUser({
+          variables: { userId: parsedUserId },
+        });
+      } else {
+        await followUser({
+          variables: { userId: parsedUserId },
+        });
+      }
+    } catch (err) {
+      console.error("Error in follow/unfollow:", err);
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, [userId]: false }));
+    }
   };
 
-  if (loading) return <div className="hidden lg:block w-80 ml-4">Loading...</div>;
+  if (usersLoading || followersLoading || followingLoading) {
+    return <div className="hidden lg:block w-80 ml-4">Loading...</div>;
+  }
+
+  // Filter out the logged-in user and users already followed
+  const filteredUsers =
+    usersData?.users?.filter(
+      (user) =>
+        user.id !== localUser?.id && // Exclude logged-in user
+        !followingData?.following.some((f) => f.id === user.id) // Exclude users already followed
+    ) || [];
 
   return (
     <div className="hidden lg:block w-80 ml-4">
@@ -45,39 +127,76 @@ const ProfileRecommendation: React.FC = () => {
           Who to follow
         </h2>
         <div className="space-y-4">
-          {data?.users?.map((user) => (
-            <div key={user.id} className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="relative h-10 w-10 rounded-full overflow-hidden bg-gray-200 mr-3">
-                  {user.profilePicture ? (
-                    <Image
-                      src={user.profilePicture}
-                      alt={user.username}
-                      fill
-                      sizes="40px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-amber-100 text-amber-800 font-semibold">
-                      {user.username.charAt(0).toUpperCase()}
+          {filteredUsers.length > 0 ? (
+            filteredUsers.map((user) => {
+              const isFollowing = followingData?.following.some(
+                (f) => f.id === user.id
+              );
+              const isFollower = followersData?.followers.some(
+                (f) => f.id === user.id
+              );
+              const isLoading = loadingStates[user.id] || false;
+
+              return (
+                <div
+                  key={user.id}
+                  className="flex items-center justify-between"
+                >
+                  <div className="flex items-center">
+                    <div className="relative h-10 w-10 rounded-full overflow-hidden bg-gray-200 mr-3">
+                      {user.profilePicture ? (
+                        <Image
+                          src={user.profilePicture}
+                          alt={user.username}
+                          fill
+                          sizes="40px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-amber-100 text-amber-800 font-semibold">
+                          {user.username.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                     </div>
-                  )}
+                    <div>
+                      <p className="font-medium text-gray-900 capitalize">
+                        {user.username.split("_").join(" ")}
+                      </p>
+                      {isFollower && (
+                        <p className="text-xs text-gray-500">Follows you</p>
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    title={
+                      isFollowing
+                        ? "Following"
+                        : isLoading
+                        ? "Processing..."
+                        : "Follow"
+                    }
+                    action={() => handleFollowToggle(user.id)}
+                    className={`text-xs py-1 ${
+                      isFollowing
+                        ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                        : ""
+                    }`}
+                    icon={
+                      isFollowing ? (
+                        <Check className="w-2 h-2" />
+                      ) : (
+                        <Plus className="w-2 h-2" />
+                      )
+                    }
+                    disabled={isLoading}
+                  />
                 </div>
-                <div>
-                  <p className="font-medium text-gray-900 capitalize">
-                    {user.username.split("_").join(" ")}
-                  </p>
-                </div>
-              </div>
-              <Button
-                type="button"
-                title="Follow"
-                action={() => handleFollow(user.id)}
-                className="text-xs py-1"
-                icon={<Plus className="w-2 h-2" />}
-              />
-            </div>
-          ))}
+              );
+            })
+          ) : (
+            <p className="text-gray-500 text-sm">No users to suggest.</p>
+          )}
         </div>
         <div className="mt-6 pt-4 border-t border-gray-200">
           <p className="text-xs text-gray-500">

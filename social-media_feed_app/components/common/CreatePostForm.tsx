@@ -7,14 +7,8 @@ import Image from "next/image";
 import { Send, Smile } from "lucide-react";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { useMutation } from "@apollo/client/react";
-import { CreatePostMutationData } from "@/interfaces";
+import { CreatePostMutationData, PostFormProps } from "@/interfaces";
 import { GET_POSTS_QUERY } from "@/graphql/requests/get/getPosts";
-
-// Updated PostFormProps interface to use string for image
-interface PostFormProps {
-  content: string;
-  imageUrl: string | null;
-}
 
 const CreatePostForm: React.FC = () => {
   const router = useRouter();
@@ -29,13 +23,16 @@ const CreatePostForm: React.FC = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
-  const [createPost, { loading, error }] = useMutation<CreatePostMutationData>(CREATE_POST_MUTATION, {
-    refetchQueries: [{ query: GET_POSTS_QUERY }],
-    awaitRefetchQueries: true,
-    onError: (err) => {
-      toast.error(err.message || "Failed to create post. Please try again.");
-    },
-  });
+  const [createPost, { loading, error }] = useMutation<CreatePostMutationData>(
+    CREATE_POST_MUTATION,
+    {
+      refetchQueries: [{ query: GET_POSTS_QUERY }],
+      awaitRefetchQueries: true,
+      onError: (err) => {
+        toast.error(err.message || "Failed to create post. Please try again.");
+      },
+    }
+  );
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const imageUrl = e.target.value;
@@ -71,8 +68,6 @@ const CreatePostForm: React.FC = () => {
         content: formState.content.trim(),
         imageUrl: formState.imageUrl || null,
       };
-
-      console.log(variables);
 
       const { data } = await createPost({ variables });
 
@@ -161,7 +156,7 @@ const CreatePostForm: React.FC = () => {
           <input
             type="text"
             name="imageUrl"
-            placeholder="Enter image URL (jpg, png, gif)"
+            placeholder="Enter image URL (eg: https://mysocial.com/image.jpg)"
             className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:ring-0 focus:outline-none"
             value={formState.imageUrl || ""}
             onChange={handleImageChange}

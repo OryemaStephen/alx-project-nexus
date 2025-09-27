@@ -1,8 +1,8 @@
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { Loader2, ArrowLeft, Heart, Share } from "lucide-react";
+import { Loader2, ArrowLeft, Heart } from "lucide-react";
 import Image from "next/image";
-import { PostQueryResult, AddCommentMutationData, LikeMutationData, UnlikeMutationData, ShareMutationData, LikesQueryResult } from "@/interfaces";
+import { PostQueryResult, AddCommentMutationData, LikeMutationData, UnlikeMutationData, LikesQueryResult, CommentsQueryResult } from "@/interfaces";
 import Dashboard from "@/components/layout/Dashboard";
 import Button from "@/components/common/Button";
 import { toast } from "react-toastify";
@@ -16,15 +16,12 @@ import { GET_LIKES_QUERY } from "@/graphql/requests/get/getLikes";
 import Avatar from "@/components/common/Avatar";
 import Comments from "@/components/common/Comments";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { SHARE_POST_MUTATION } from "@/graphql/requests/posts/sharePost";
 
 const PostDetailPage: React.FC = () => {
   const router = useRouter();
   const { id } = router.query;
   const [comment, setComment] = useState("");
-  const [shareMessage, setShareMessage] = useState("");
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-   const user = useCurrentUser();
+  const user = useCurrentUser();
 
   const postId = typeof id === "string" ? parseInt(id, 10) : null;
 
@@ -36,8 +33,12 @@ const PostDetailPage: React.FC = () => {
     variables: { postId },
     skip: !postId,
   });
+  const { data: commentsData, loading: commentsLoading } = useQuery<CommentsQueryResult>(GET_COMMENTS_QUERY, {
+    variables: { postId },
+    skip: !postId,
+  });
 
-  const [addComment, { loading: commentMutationLoading, error: commentMutationError }] = useMutation<AddCommentMutationData>(
+  const [addComment, { loading: commentMutationLoading }] = useMutation<AddCommentMutationData>(
     ADD_COMMENT_MUTATION,
     {
       refetchQueries: [
@@ -47,7 +48,7 @@ const PostDetailPage: React.FC = () => {
     }
   );
 
-  const [likePost, { loading: likeMutationLoading, error: likeMutationError }] = useMutation<LikeMutationData>(
+  const [likePost, { loading: likeMutationLoading }] = useMutation<LikeMutationData>(
     LIKE_POST_MUTATION,
     {
       refetchQueries: [
@@ -57,20 +58,13 @@ const PostDetailPage: React.FC = () => {
     }
   );
 
-  const [unlikePost, { loading: unlikeMutationLoading, error: unlikeMutationError }] = useMutation<UnlikeMutationData>(
+  const [unlikePost, { loading: unlikeMutationLoading }] = useMutation<UnlikeMutationData>(
     UNLIKE_POST_MUTATION,
     {
       refetchQueries: [
         { query: GET_POST_QUERY, variables: { id: postId } },
         { query: GET_LIKES_QUERY, variables: { postId } },
       ],
-    }
-  );
-
-  const [sharePost, { loading: shareMutationLoading, error: shareMutationError }] = useMutation<ShareMutationData>(
-    SHARE_POST_MUTATION,
-    {
-      refetchQueries: [{ query: GET_POST_QUERY, variables: { id: postId } }],
     }
   );
 
@@ -138,31 +132,7 @@ const PostDetailPage: React.FC = () => {
     }
   };
 
-  const handleSharePost = async () => {
-    if (!postId) {
-      toast.error("Invalid post ID.");
-      return;
-    }
-
-    try {
-      const { data } = await sharePost({
-        variables: { postId, message: shareMessage.trim() || undefined },
-      });
-
-      if (!data?.sharePost?.share) {
-        throw new Error("No share data returned from server");
-      }
-
-      setShareMessage("");
-      setIsShareModalOpen(false);
-      toast.success("Post shared successfully! 🚀");
-    } catch (err) {
-      console.error("Error sharing post:", err);
-      toast.error("Failed to share post. Please try again.");
-    }
-  };
-
-  if (postLoading || likesLoading) {
+  if (postLoading || likesLoading || commentsLoading) {
     return (
       <div className="flex w-full min-h-[70vh] justify-center items-center">
         <div className="flex items-center gap-2">
@@ -235,68 +205,21 @@ const PostDetailPage: React.FC = () => {
                 likeMutationLoading || unlikeMutationLoading
                   ? "Processing..."
                   : isLiked
-                  ? `Unlike (${post.likeCount})`
-                  : `Like (${post.likeCount})`
+                  ? `Unlike (${likesData?.likes.length || 0})`
+                  : `Like (${likesData?.likes.length || 0})`
               }
               type="button"
               action={handleToggleLike}
               disabled={likeMutationLoading || unlikeMutationLoading}
-              className="flex items-center gap-1 rounded-md hover:bg-[#9dcce3] transition px-2 py-1"
+              className="flex items-center gap-1 rounded-md bg-transparent border-none hover:bg-transparent hover:border-none transition px-2 py-1"
               icon={<Heart
                 size={16}
                 className={isLiked ? "text-red-500 fill-red-500" : "text-red-500"}
               />}
             />
-            <span>{post.commentCount} Comments</span>
-            <Button
-              title={shareMutationLoading ? "Sharing..." : `Share (${post.shareCount})`}
-              type="button"
-              action={() => setIsShareModalOpen(true)}
-              disabled={shareMutationLoading}
-              className="flex items-center gap-1 rounded-md hover:bg-[#9dcce3] transition px-2 py-1"
-              icon={ <Share size={16} className="text-blue-500" />}
-            />
+            <span>{commentsData?.comments.length || 0} Comments</span>
           </div>
-
-          {(likeMutationError || unlikeMutationError || shareMutationError || commentMutationError) && (
-            <div className="text-red-500 mb-4">
-              Error: {(likeMutationError || unlikeMutationError || shareMutationError || commentMutationError)?.message || "An error occurred while processing the action."}
-            </div>
-          )}
         </div>
-
-        {isShareModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h3 className="text-lg font-semibold mb-4">Share Post</h3>
-              <textarea
-                value={shareMessage}
-                onChange={(e) => setShareMessage(e.target.value)}
-                placeholder="Add a message (optional)"
-                className="w-full p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A9DEF9] mb-4"
-                rows={4}
-              />
-              <div className="flex justify-end gap-2">
-                <Button
-                  title="Cancel"
-                  type="button"
-                  action={() => {
-                    setShareMessage("");
-                    setIsShareModalOpen(false);
-                  }}
-                  className="rounded-md bg-gray-200 hover:bg-gray-300 transition"
-                />
-                <Button
-                  title={shareMutationLoading ? "Sharing..." : "Share"}
-                  type="button"
-                  action={handleSharePost}
-                  disabled={shareMutationLoading}
-                  className="rounded-md hover:bg-[#9dcce3] transition"
-                />
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="bg-white p-4 rounded-b-2xl shadow-lg">
           <h2 className="text-xl text-black font-semibold mb-4">Comments</h2>

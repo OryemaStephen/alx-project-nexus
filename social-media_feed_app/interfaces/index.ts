@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 
 export interface ComponentProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export interface ButtonProps {
@@ -10,7 +10,7 @@ export interface ButtonProps {
   className?: string;
   action?: () => void;
   disabled?: boolean;
-  icon?: React.ReactNode; 
+  icon?: React.ReactNode;
 }
 
 export type MenuItem = {
@@ -34,7 +34,7 @@ export interface BrowserTitleProps {
   title: string;
 }
 
-export interface RegisterFormProps{
+export interface RegisterFormProps {
   username: string;
   email: string;
   password: string;
@@ -57,7 +57,7 @@ export interface LoginMutationData {
 }
 export interface PostFormProps {
   content: string;
-  imageUrl: string | "";
+  imageUrl: string | null;
 }
 
 export interface Post {
@@ -92,7 +92,7 @@ export interface CreatePostMutationData {
 
 export interface PostsQueryResults {
   posts: Post[];
-};
+}
 
 export interface PostQueryResult {
   post: Post | null;
@@ -123,8 +123,6 @@ export interface UserProfile {
   email: string;
   bio?: string;
   profilePicture?: string;
-  followersCount: number;
-  followingCount: number; 
 }
 
 export interface MeQueryData {
@@ -158,6 +156,10 @@ export interface Comment {
   };
   content: string;
   createdAt: string;
+}
+
+export interface CommentsProps {
+  postId: number;
 }
 
 export interface CommentsQueryResult {
@@ -251,5 +253,29 @@ export interface PostQueryResult {
 
 export interface LikesQueryResult {
   likes: Like[];
+}
+export interface UserData {
+  users: {
+    id: string;
+    username: string;
+    email: string;
+    bio: string;
+    profilePicture: string;
+  }[];
+}
+
+export interface FollowType {
+  id: string;
+  follower: UserData['users'];
+  following: UserData['users'];
+  createdAt: string;
+}
+
+export interface UserFollowers {
+  followers: UserProfile[];
+}
+
+export interface UserFollowing {
+  following: UserProfile[];
 }
 

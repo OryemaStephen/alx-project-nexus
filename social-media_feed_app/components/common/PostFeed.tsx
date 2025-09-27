@@ -36,9 +36,9 @@ const PostFeed: React.FC = () => {
       {!loading && !error && data?.posts && (
         <div>
           {data.posts.map((post: Post) => (
-            <PostCard 
-              key={post.id} 
-              post={post} 
+            <PostCard
+              key={post.id}
+              post={post}
               onOpenPost={() => router.push(`/dashboard/posts/${post.id}`)}
             />
           ))}

@@ -1,17 +1,16 @@
 import { useQuery } from "@apollo/client/react";
 import { Loader2 } from "lucide-react";
 import Avatar from "@/components/common/Avatar";
-import { CommentsQueryResult, Comment } from "@/interfaces";
+import { CommentsQueryResult, Comment, CommentsProps } from "@/interfaces";
 import { GET_COMMENTS_QUERY } from "@/graphql/requests/get/getPostComments";
 
-interface CommentsProps {
-  postId: number;
-}
-
 const Comments: React.FC<CommentsProps> = ({ postId }) => {
-  const { data, loading, error } = useQuery<CommentsQueryResult>(GET_COMMENTS_QUERY, {
-    variables: { postId },
-  });
+  const { data, loading, error } = useQuery<CommentsQueryResult>(
+    GET_COMMENTS_QUERY,
+    {
+      variables: { postId },
+    }
+  );
 
   if (loading) {
     return (

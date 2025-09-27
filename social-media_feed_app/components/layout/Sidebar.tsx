@@ -1,18 +1,35 @@
-import { SidebarProps } from "@/interfaces";
-import React from "react";
+import { MeQueryData, SidebarProps } from "@/interfaces";
+import React, { useEffect } from "react";
 import Logo from "../common/Logo";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
+import { useQuery } from "@apollo/client/react";
+import { ME_QUERY } from "@/graphql/requests/get/getMyProfile";
 
 const Sidebar: React.FC<SidebarProps> = ({ menuItems, active, onSelect }) => {
   const router = useRouter();
 
+  const {
+      data: meData,
+    } = useQuery<MeQueryData>(ME_QUERY);
+
+
+    useEffect(() => {
+      if (meData?.me) {
+        localStorage.setItem('logged_in_user', JSON.stringify(meData.me));
+      }
+    }, [meData]);
+
   const handleLogout = () => {
     localStorage.removeItem('access_token');
+    localStorage.removeItem('logged_in_user');
     toast.success('Logged out successfully 👋');
     onSelect('logout');
     router.push('/auth/login');
+    setTimeout(() => {
+      window.location.reload();
+    },1000)
   };
 
   return (

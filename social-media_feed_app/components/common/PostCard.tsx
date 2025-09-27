@@ -1,18 +1,16 @@
 import Image from "next/image";
-import { Heart, MessageCircle, Share } from "lucide-react";
-import { PostCardProps, LikeMutationData, ShareMutationData, LikesQueryResult } from "@/interfaces";
+import { Heart, MessageCircle } from "lucide-react";
+import { PostCardProps, LikeMutationData, LikesQueryResult, CommentsQueryResult } from "@/interfaces";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useMutation, useQuery } from "@apollo/client/react";
 import Avatar from "./Avatar";
 import { LIKE_POST_MUTATION } from "@/graphql/requests/posts/likePost";
 import { GET_LIKES_QUERY } from "@/graphql/requests/get/getLikes";
+import { GET_COMMENTS_QUERY } from "@/graphql/requests/get/getPostComments";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { SHARE_POST_MUTATION } from "@/graphql/requests/posts/sharePost";
 
 const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [shareMessage, setShareMessage] = useState("");
   const [likedPosts, setLikedPosts] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
       return JSON.parse(localStorage.getItem("likedPosts") || "[]");
@@ -25,26 +23,38 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
     localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
   }, [likedPosts]);
 
-  const { data: likesData, loading: likesLoading } = useQuery<LikesQueryResult>(GET_LIKES_QUERY, {
-    variables: { postId: parseInt(post.id, 10) },
-    skip: !post.id,
-  });
-
-  const [likePost, { loading: likeMutationLoading }] = useMutation<LikeMutationData>(
-    LIKE_POST_MUTATION,
+  const { data: likesData, loading: likesLoading } = useQuery<LikesQueryResult>(
+    GET_LIKES_QUERY,
     {
-      refetchQueries: [{ query: GET_LIKES_QUERY, variables: { postId: parseInt(post.id, 10) } }],
+      variables: { postId: parseInt(post.id, 10) },
+      skip: !post.id,
     }
   );
 
-  const [sharePost, { loading: shareMutationLoading }] = useMutation<ShareMutationData>(
-    SHARE_POST_MUTATION,
+  const { data: commentsData } = useQuery<CommentsQueryResult>(
+    GET_COMMENTS_QUERY,
     {
-      refetchQueries: [],
+      variables: { postId: parseInt(post.id, 10) },
+      skip: !post.id,
     }
   );
 
-  const isLiked = user ? likedPosts.includes(post.id) || likesData?.likes.some((like) => like.user.id === user.username) || false : false;
+  const [likePost, { loading: likeMutationLoading }] =
+    useMutation<LikeMutationData>(LIKE_POST_MUTATION, {
+      refetchQueries: [
+        {
+          query: GET_LIKES_QUERY,
+          variables: { postId: parseInt(post.id, 10) },
+        },
+      ],
+    });
+
+  const isLiked = user
+    ? likedPosts.includes(post.id) ||
+      likesData?.likes.some((like) => like.user.id === user.username) ||
+      false
+    : false;
+
   const handleToggleLike = (event: React.MouseEvent) => {
     event.stopPropagation();
     if (!user) {
@@ -67,39 +77,14 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
       variables: { postId: parseInt(post.id, 10) },
     }).catch((err) => {
       console.error("Error liking post:", err);
-      toast.error(err.message.includes("already liked") ? "You have already liked this post." : "Failed to like post.");
+      toast.error(
+        err.message.includes("already liked")
+          ? "You have already liked this post."
+          : "Failed to like post."
+      );
     });
 
     toast.success(isLiked ? "Post unliked!" : "Post liked! ❤️");
-  };
-
-  const handleSharePost = async (event: React.MouseEvent) => {
-    event.stopPropagation();
-    if (!user) {
-      toast.error("Please log in to share this post.");
-      return;
-    }
-    if (!post.id) {
-      toast.error("Invalid post ID.");
-      return;
-    }
-
-    try {
-      const { data } = await sharePost({
-        variables: { postId: parseInt(post.id, 10), message: shareMessage.trim() || undefined },
-      });
-
-      if (!data?.sharePost?.share) {
-        throw new Error("No share data returned from server");
-      }
-
-      setShareMessage("");
-      setIsShareModalOpen(false);
-      toast.success("Post shared successfully! 🚀");
-    } catch (err) {
-      console.error("Error sharing post:", err);
-      toast.error("Failed to share post. Please try again.");
-    }
   };
 
   return (
@@ -124,13 +109,13 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
       {post.content && <p className="mb-4 text-gray-800">{post.content}</p>}
 
       {post.imageUrl && (
-        <div className="w-full h-auto rounded-lg overflow-hidden">
+        <div className="w-full max-h-96 rounded-lg overflow-hidden">
           <Image
             src={post.imageUrl}
             alt={`${post.author.username} image`}
-            width={400}
-            height={300}
-            className="rounded-lg w-full max-h-72"
+            width={500}
+            height={500}
+            className="rounded-lg object-cover object-center w-full max-h-96"
             style={{ objectFit: "cover" }}
           />
         </div>
@@ -141,64 +126,25 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
           onClick={handleToggleLike}
           className={`flex items-center gap-1 ${
             isLiked ? "text-red-500" : "text-gray-500"
-          } ${likeMutationLoading || likesLoading || !user ? "opacity-50 cursor-not-allowed" : ""}`}
+          } ${
+            likeMutationLoading || likesLoading || !user
+              ? "opacity-50 cursor-not-allowed"
+              : ""
+          }`}
           disabled={likeMutationLoading || likesLoading || !user || isLiked}
         >
-           <Heart size={15} fill={isLiked ? "currentColor" : "none"} />
+          <Heart size={15} fill={isLiked ? "currentColor" : "none"} />
+          {likesData?.likes.length || 0} Likes
         </button>
 
         <button
           onClick={onOpenPost}
           className="flex items-center gap-1 text-gray-500"
         >
-          {post.commentCount} <MessageCircle size={15} />
-        </button>
-
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsShareModalOpen(true);
-          }}
-          className={`flex items-center gap-1 text-gray-500 ${shareMutationLoading || !user ? "opacity-50 cursor-not-allowed" : ""}`}
-          disabled={shareMutationLoading || !user}
-        >
-          {post.shareCount} <Share size={15} />
-          {/* Share */}
+          <MessageCircle size={15} />
+          {commentsData?.comments.length || 0} Comments
         </button>
       </div>
-
-      {isShareModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Share Post</h3>
-            <textarea
-              value={shareMessage}
-              onChange={(e) => setShareMessage(e.target.value)}
-              placeholder="Add a message (optional)"
-              className="w-full p-3 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A9DEF9] mb-4"
-              rows={4}
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => {
-                  setShareMessage("");
-                  setIsShareModalOpen(false);
-                }}
-                className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSharePost}
-                disabled={shareMutationLoading || !user}
-                className={`px-4 py-2 bg-[#A9DEF9] rounded-md hover:bg-[#9dcce3] transition ${shareMutationLoading || !user ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                {shareMutationLoading ? "Sharing..." : "Share"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

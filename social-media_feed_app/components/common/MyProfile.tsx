@@ -13,7 +13,6 @@ const MyProfile: React.FC = () => {
   const storedUser = localStorage.getItem("logged_in_user");
   if (storedUser) {
     localUser = JSON.parse(storedUser);
-    console.log(localUser);
   }
 
   const { data: followersData, loading: followersLoading } =

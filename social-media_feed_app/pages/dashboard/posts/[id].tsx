@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
-import { useState } from "react";
-import { Loader2, ArrowLeft, Heart } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Loader2, ArrowLeft, Heart, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import { PostQueryResult, AddCommentMutationData, LikeMutationData, UnlikeMutationData, LikesQueryResult, CommentsQueryResult } from "@/interfaces";
 import Dashboard from "@/components/layout/Dashboard";
@@ -21,7 +21,17 @@ const PostDetailPage: React.FC = () => {
   const router = useRouter();
   const { id } = router.query;
   const [comment, setComment] = useState("");
+  const [likedPosts, setLikedPosts] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      return JSON.parse(localStorage.getItem("likedPosts") || "[]");
+    }
+    return [];
+  });
   const user = useCurrentUser();
+
+  useEffect(() => {
+    localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
+  }, [likedPosts]);
 
   const postId = typeof id === "string" ? parseInt(id, 10) : null;
 
@@ -33,7 +43,7 @@ const PostDetailPage: React.FC = () => {
     variables: { postId },
     skip: !postId,
   });
-  const { data: commentsData, loading: commentsLoading } = useQuery<CommentsQueryResult>(GET_COMMENTS_QUERY, {
+  const { data: commentsData } = useQuery<CommentsQueryResult>(GET_COMMENTS_QUERY, {
     variables: { postId },
     skip: !postId,
   });
@@ -69,7 +79,11 @@ const PostDetailPage: React.FC = () => {
   );
 
   const post = postData?.post;
-  const isLiked = likesData?.likes?.some((like) => like?.user?.username === user?.username) || false;
+  const isLiked = user
+    ? likedPosts.includes(String(postId)) ||
+      likesData?.likes.some((like) => like?.user?.username === user?.username) ||
+      false
+    : false;
 
   const handleAddComment = async () => {
     if (!comment.trim()) {
@@ -99,7 +113,12 @@ const PostDetailPage: React.FC = () => {
     }
   };
 
-  const handleToggleLike = async () => {
+  const handleToggleLike = async (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (!user) {
+      toast.error("Please log in to like this post.");
+      return;
+    }
     if (!postId) {
       toast.error("Invalid post ID.");
       return;
@@ -115,6 +134,7 @@ const PostDetailPage: React.FC = () => {
           throw new Error("Unlike operation failed");
         }
 
+        setLikedPosts((prev) => prev.filter((id) => id !== String(postId)));
         toast.success("Post unliked!");
       } else {
         const { data } = await likePost({
@@ -125,6 +145,7 @@ const PostDetailPage: React.FC = () => {
           throw new Error("No like data returned from server");
         }
 
+        setLikedPosts((prev) => [...prev, String(postId)]);
         toast.success("Post liked! ❤️");
       }
     } catch (err) {
@@ -132,7 +153,7 @@ const PostDetailPage: React.FC = () => {
     }
   };
 
-  if (postLoading || likesLoading || commentsLoading) {
+  if (postLoading) {
     return (
       <div className="flex w-full min-h-[70vh] justify-center items-center">
         <div className="flex items-center gap-2">
@@ -199,25 +220,27 @@ const PostDetailPage: React.FC = () => {
             </div>
           )}
 
-          <div className="flex items-center gap-5 text-gray-600 text-sm mb-4">
-            <Button
-              title={
-                likeMutationLoading || unlikeMutationLoading
-                  ? "Processing..."
-                  : isLiked
-                  ? `Unlike (${likesData?.likes.length || 0})`
-                  : `Like (${likesData?.likes.length || 0})`
-              }
-              type="button"
-              action={handleToggleLike}
-              disabled={likeMutationLoading || unlikeMutationLoading}
-              className="flex items-center gap-1 rounded-md bg-transparent border-none hover:bg-transparent hover:border-none transition px-2 py-1"
-              icon={<Heart
-                size={16}
-                className={isLiked ? "text-red-500 fill-red-500" : "text-red-500"}
-              />}
-            />
-            <span>{commentsData?.comments.length || 0} Comments</span>
+          <div className="flex items-center gap-4 pt-3">
+            <button
+              onClick={handleToggleLike}
+              className={`flex items-center gap-1 ${
+                isLiked ? "text-green-500" : "text-gray-500"
+              } ${
+                likeMutationLoading || unlikeMutationLoading || likesLoading || !user
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
+              disabled={likeMutationLoading || unlikeMutationLoading || likesLoading || !user}
+            >
+              <Heart size={15} fill={isLiked ? "currentColor" : "none"} />
+              {likesData?.likes.length || 0} Likes
+            </button>
+            <button
+              className="flex items-center gap-1 text-gray-500"
+            >
+              <MessageCircle size={15} />
+              {commentsData?.comments.length || 0} Comments
+            </button>
           </div>
         </div>
 

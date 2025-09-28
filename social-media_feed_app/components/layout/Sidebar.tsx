@@ -14,7 +14,6 @@ const Sidebar: React.FC<SidebarProps> = ({ menuItems, active, onSelect }) => {
       data: meData,
     } = useQuery<MeQueryData>(ME_QUERY);
 
-
     useEffect(() => {
       if (meData?.me) {
         localStorage.setItem('logged_in_user', JSON.stringify(meData.me));
@@ -41,7 +40,7 @@ const Sidebar: React.FC<SidebarProps> = ({ menuItems, active, onSelect }) => {
         {menuItems
           .filter((item) => item.id !== "logout")
           .map(({ id, label, icon: Icon, path }) => (
-            <li key={id}>
+            <li key={id} className={`${id === "users" ? "lg:hidden" : ""}`}>
               <Link
                 href={path}
                 onClick={() => onSelect(id)}

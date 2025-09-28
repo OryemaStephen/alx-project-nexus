@@ -112,16 +112,15 @@ const ProfileRecommendation: React.FC = () => {
     return <div className="hidden lg:block w-80 ml-4">Loading...</div>;
   }
 
-  // Filter out the logged-in user and users already followed
   const filteredUsers =
     usersData?.users?.filter(
       (user) =>
-        user.id !== localUser?.id && // Exclude logged-in user
-        !followingData?.following.some((f) => f.id === user.id) // Exclude users already followed
+        user.id !== localUser?.id && 
+        !followingData?.following.some((f) => f.id === user.id)
     ) || [];
 
   return (
-    <div className="hidden lg:block w-80 ml-4">
+    <div className="w-full">
       <div className="bg-white rounded-2xl shadow-lg p-4 top-0 sticky">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">
           Who to follow

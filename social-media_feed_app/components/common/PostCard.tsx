@@ -1,11 +1,12 @@
 import Image from "next/image";
 import { Heart, MessageCircle } from "lucide-react";
-import { PostCardProps, LikeMutationData, LikesQueryResult, CommentsQueryResult } from "@/interfaces";
+import { PostCardProps, LikeMutationData, UnlikeMutationData, LikesQueryResult, CommentsQueryResult } from "@/interfaces";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useMutation, useQuery } from "@apollo/client/react";
 import Avatar from "./Avatar";
 import { LIKE_POST_MUTATION } from "@/graphql/requests/posts/likePost";
+import { UNLIKE_POST_MUTATION } from "@/graphql/requests/posts/unlikePost";
 import { GET_LIKES_QUERY } from "@/graphql/requests/get/getLikes";
 import { GET_COMMENTS_QUERY } from "@/graphql/requests/get/getPostComments";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -39,15 +40,29 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
     }
   );
 
-  const [likePost, { loading: likeMutationLoading }] =
-    useMutation<LikeMutationData>(LIKE_POST_MUTATION, {
+  const [likePost, { loading: likeMutationLoading }] = useMutation<LikeMutationData>(
+    LIKE_POST_MUTATION,
+    {
       refetchQueries: [
         {
           query: GET_LIKES_QUERY,
           variables: { postId: parseInt(post.id, 10) },
         },
       ],
-    });
+    }
+  );
+
+  const [unlikePost, { loading: unlikeMutationLoading }] = useMutation<UnlikeMutationData>(
+    UNLIKE_POST_MUTATION,
+    {
+      refetchQueries: [
+        {
+          query: GET_LIKES_QUERY,
+          variables: { postId: parseInt(post.id, 10) },
+        },
+      ],
+    }
+  );
 
   const isLiked = user
     ? likedPosts.includes(post.id) ||
@@ -55,7 +70,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
       false
     : false;
 
-  const handleToggleLike = (event: React.MouseEvent) => {
+  const handleToggleLike = async (event: React.MouseEvent) => {
     event.stopPropagation();
     if (!user) {
       toast.error("Please log in to like this post.");
@@ -66,25 +81,33 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
       return;
     }
 
-    setLikedPosts((prev) => {
-      if (prev.includes(post.id)) {
-        return prev.filter((id) => id !== post.id);
+    try {
+      if (isLiked) {
+        const { data } = await unlikePost({
+          variables: { postId: parseInt(post.id, 10) },
+        });
+
+        if (!data?.unlikePost?.success) {
+          throw new Error("Unlike operation failed");
+        }
+
+        setLikedPosts((prev) => prev.filter((id) => id !== post.id));
+        toast.success("Post unliked!");
+      } else {
+        const { data } = await likePost({
+          variables: { postId: parseInt(post.id, 10) },
+        });
+
+        if (!data?.likePost?.like) {
+          throw new Error("No like data returned from server");
+        }
+
+        setLikedPosts((prev) => [...prev, post.id]);
+        toast.success("Post liked! ❤️");
       }
-      return [...prev, post.id];
-    });
-
-    likePost({
-      variables: { postId: parseInt(post.id, 10) },
-    }).catch((err) => {
-      console.error("Error liking post:", err);
-      toast.error(
-        err.message.includes("already liked")
-          ? "You have already liked this post."
-          : "Failed to like post."
-      );
-    });
-
-    toast.success(isLiked ? "Post unliked!" : "Post liked! ❤️");
+    } catch (err) {
+      console.error("Error processing like/unlike:", err);
+    }
   };
 
   return (
@@ -125,13 +148,13 @@ const PostCard: React.FC<PostCardProps> = ({ post, onOpenPost }) => {
         <button
           onClick={handleToggleLike}
           className={`flex items-center gap-1 ${
-            isLiked ? "text-red-500" : "text-gray-500"
+            isLiked ? "text-green-500" : "text-gray-500"
           } ${
-            likeMutationLoading || likesLoading || !user
+            likeMutationLoading || unlikeMutationLoading || likesLoading || !user
               ? "opacity-50 cursor-not-allowed"
               : ""
           }`}
-          disabled={likeMutationLoading || likesLoading || !user || isLiked}
+          disabled={likeMutationLoading || unlikeMutationLoading || likesLoading || !user}
         >
           <Heart size={15} fill={isLiked ? "currentColor" : "none"} />
           {likesData?.likes.length || 0} Likes

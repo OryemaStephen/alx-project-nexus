@@ -7,12 +7,14 @@ const Profile: React.FC = () => {
   return (
     <Dashboard>
       <BrowserTitle title="Profile" />
-      
+
       <div className="text-black flex">
         <div className="flex-1 max-w-4xl">
           <MyProfile />
         </div>
-        <ProfileRecommendation />
+        <div className="hidden lg:block w-80 ml-4">
+          <ProfileRecommendation />
+        </div>
       </div>
     </Dashboard>
   );

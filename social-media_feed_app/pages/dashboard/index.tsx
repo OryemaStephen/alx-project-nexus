@@ -13,7 +13,9 @@ const Home: React.FC = () => {
           <CreatePostForm />
           <PostFeed />
         </div>
-        <ProfileRecommendation />
+        <div className="hidden lg:block w-80 ml-4">
+          <ProfileRecommendation />
+        </div>
       </div>
     </Dashboard>
   );

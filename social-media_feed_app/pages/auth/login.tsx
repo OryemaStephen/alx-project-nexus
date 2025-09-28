@@ -1,4 +1,4 @@
-import {  useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -18,14 +18,24 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginMutation] = useMutation<LoginMutationData>(LOGIN_MUTATION);
 
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    const user = localStorage.getItem("logged_in_user");
+
+    
+    if (token && user) {
+      router.push("/dashboard");
+    }
+  }, [router]);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!formState.username) {
-      toast.error("Please enter password.");
+      toast.error("Please enter username.");
       return;
     } else if (!formState.password) {
-      toast.error("Please enter username .");
+      toast.error("Please enter password.");
       return;
     }
 
@@ -106,15 +116,15 @@ const Login: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className= "flex w-full items-center gap-2 justify-center cursor-pointer px-8 py-2 border-2 border-[#A9DEF9] bg-[#A9DEF9] rounded-full hover:bg-[#6396b0] text-black transition-colors duration-300"
+              className="flex w-full items-center gap-2 justify-center cursor-pointer px-8 py-2 border-2 border-[#A9DEF9] bg-[#A9DEF9] rounded-full hover:bg-[#6396b0] text-black transition-colors duration-300"
             >
               {loading ? (
-                  <div className="flex items-center gap-1">
-                    <Loader2 className="animate-spin"/> Logging in ...
-                  </div>
-                ) : (
-                  "Login"
-                )}
+                <div className="flex items-center gap-1">
+                  <Loader2 className="animate-spin" /> Logging in ...
+                </div>
+              ) : (
+                "Login"
+              )}
             </button>
           </form>
           <p className="mt-4 text-center text-sm text-gray-600">
